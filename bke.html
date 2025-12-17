@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Boter Kaas & Eieren</title>
+<style>
+  :root{
+    --bg1:#0b1024;
+    --bg2:#121b3b;
+    --card:#ffffff;
+    --soft:#eef1ff;
+    --muted:#6b7280;
+    --ink:#111827;
+    --x:#2e3cff;
+    --o:#c22a2a;
+    --radius:18px;
+  }
+  body{
+    margin:0;
+    font-family:system-ui, Arial;
+    background: radial-gradient(1200px 700px at 20% 0%, #1a2a6b 0%, var(--bg1) 55%, #070a16 100%);
+    color:#fff;
+    min-height:100vh;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:18px;}
+  .shell{
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 22px;
+    padding: 14px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.35);
+    backdrop-filter: blur(10px);
+  }
+  .titleRow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+  h1{margin:0;font-size:22px;letter-spacing:.2px}
+  .sub{opacity:.85;font-weight:800;margin-top:6px;line-height:1.25}
+  .pill{
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-weight: 950;
+    white-space:nowrap;
+  }
+
+  .panel{
+    margin-top:14px;
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 20px;
+    padding: 12px;
+  }
+
+  .players{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  @media (max-width:520px){ .players{grid-template-columns:1fr;} }
+
+  .pCard{
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 18px;
+    padding: 10px;
+    transition: transform .15s ease, outline .15s ease;
+  }
+  .pCard.active{
+    outline: 3px solid rgba(46,60,255,.35);
+    transform: translateY(-1px);
+  }
+  .pTop{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .pName{font-weight:1000}
+  .badge{
+    border-radius:999px;
+    padding:6px 10px;
+    font-weight:1000;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.18);
+  }
+  .xBadge{color:#fff;background: rgba(46,60,255,.25); border-color: rgba(46,60,255,.35);}
+  .oBadge{color:#fff;background: rgba(194,42,42,.25); border-color: rgba(194,42,42,.35);}
+  .stats{display:grid;grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
+  .mini{
+    background: rgba(0,0,0,.18);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px;
+    padding: 8px;
+    text-align:center;
+  }
+  .mini .n{font-size:18px;font-weight:1000}
+  .mini .l{font-size:12px;opacity:.85;font-weight:900}
+
+  .boardWrap{margin-top:12px;}
+  .board{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+  }
+  .cell{
+    aspect-ratio:1/1;
+    border-radius: 18px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.14);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 46px;
+    font-weight: 1100;
+    cursor:pointer;
+    user-select:none;
+    transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .cell:hover{ background: rgba(255,255,255,.11); }
+  .cell:active{ transform: scale(.98); }
+  .cell.disabled{ cursor:not-allowed; opacity:.65; }
+  .X{ color: var(--x); text-shadow: 0 10px 30px rgba(46,60,255,.35); }
+  .O{ color: var(--o); text-shadow: 0 10px 30px rgba(194,42,42,.25); }
+
+  .msg{
+    margin-top:10px;
+    min-height:26px;
+    font-weight:1000;
+    text-align:center;
+  }
+  .hint{
+    margin-top:8px;
+    font-size:12px;
+    opacity:.85;
+    font-weight:850;
+    text-align:center;
+  }
+
+  .btnRow{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  button{
+    flex:1;
+    padding:12px 14px;
+    border:0;
+    border-radius: 14px;
+    font-weight:1000;
+    cursor:pointer;
+    font-size:16px;
+    background: var(--x);
+    color:#fff;
+  }
+  button.secondary{
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.18);
+  }
+  button:disabled{opacity:.55;cursor:not-allowed;}
+
+  /* Overlays */
+  .overlay{
+    position:fixed; inset:0;
+    background: rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index: 999;
+    padding: 16px;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    width: min(460px, 94vw);
+    background: #ffffff;
+    color: var(--ink);
+    border-radius: 22px;
+    padding: 16px;
+    box-shadow: 0 18px 70px rgba(0,0,0,.45);
+  }
+  .modal h2{margin:0;font-size:20px}
+  .modal p{margin:8px 0 12px 0;color:var(--muted);font-weight:800}
+  .modal input{
+    width:100%;
+    padding:12px 12px;
+    border-radius: 14px;
+    border: 2px solid #e5e7f2;
+    font-size: 16px;
+    box-sizing:border-box;
+    margin-top:10px;
+    outline:none;
+  }
+  .modal input:focus{border-color:#7b8cff;}
+  .modal .actions{display:flex;gap:10px;margin-top:12px;}
+  .modal .actions button{flex:1;margin:0;}
+
+  /* Confetti */
+  #confetti{
+    position: fixed;
+    inset:0;
+    width:100vw;
+    height:100vh;
+    pointer-events:none;
+    display:none;
+    z-index: 9999;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="overlay show" id="nameOverlay">
+  <div class="modal">
+    <h2>👥 Spelers</h2>
+    <p>Vul de namen in. X begint. (Max 4 stenen per speler — bij de 5e zet verdwijnt de oudste.)</p>
+    <input id="nameX" placeholder="Naam speler X (bijv. Leo)" />
+    <input id="nameO" placeholder="Naam speler O (bijv. Mama)" />
+    <div class="actions">
+      <button class="secondary" id="quickStart">Snelstart</button>
+      <button id="startGame">Start</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="shell">
+    <div class="titleRow">
+      <div>
+        <h1>⭕❌ Boter Kaas & Eieren</h1>
+        <div class="sub">Game mode: <b>Max 4 stenen</b> per speler. Bij je <b>5e zet</b> verdwijnt je oudste steen.</div>
+      </div>
+      <div class="pill" id="roundPill">Ronde 1</div>
+    </div>
+
+    <div class="panel">
+      <div class="players">
+        <div class="pCard" id="pX">
+          <div class="pTop">
+            <div class="pName" id="labelX">X</div>
+            <div class="badge xBadge">X</div>
+          </div>
+          <div class="stats">
+            <div class="mini"><div class="n" id="scoreX">0</div><div class="l">Wins</div></div>
+            <div class="mini"><div class="n" id="stonesX">0</div><div class="l">Stenen</div></div>
+          </div>
+        </div>
+
+        <div class="pCard" id="pO">
+          <div class="pTop">
+            <div class="pName" id="labelO">O</div>
+            <div class="badge oBadge">O</div>
+          </div>
+          <div class="stats">
+            <div class="mini"><div class="n" id="scoreO">0</div><div class="l">Wins</div></div>
+            <div class="mini"><div class="n" id="stonesO">0</div><div class="l">Stenen</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="boardWrap">
+        <div class="board" id="board"></div>
+        <div class="msg" id="msg"></div>
+        <div class="hint">Tip: je ziet je “Stenen” teller omhoog gaan tot 4. Bij de volgende zet verdwijnt je oudste.</div>
+
+        <div class="btnRow">
+          <button class="secondary" id="newRound">Nieuwe ronde</button>
+          <button class="secondary" id="resetAll">Reset alles</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ----- CONFIG: Variant A -----
+  const MAX_STONES = 4; // ✅ max 4 stenen per speler; bij 5e verdwijnt oudste
+
+  // ----- DOM -----
+  const overlay = document.getElementById("nameOverlay");
+  const nameXInput = document.getElementById("nameX");
+  const nameOInput = document.getElementById("nameO");
+  const btnStart = document.getElementById("startGame");
+  const btnQuick = document.getElementById("quickStart");
+
+  const boardEl = document.getElementById("board");
+  const msgEl = document.getElementById("msg");
+  const roundPill = document.getElementById("roundPill");
+
+  const pX = document.getElementById("pX");
+  const pO = document.getElementById("pO");
+  const labelX = document.getElementById("labelX");
+  const labelO = document.getElementById("labelO");
+  const scoreXEl = document.getElementById("scoreX");
+  const scoreOEl = document.getElementById("scoreO");
+  const stonesXEl = document.getElementById("stonesX");
+  const stonesOEl = document.getElementById("stonesO");
+
+  const btnNewRound = document.getElementById("newRound");
+  const btnResetAll = document.getElementById("resetAll");
+
+  // ----- Voice -----
+  function speak(text){
+    if (!("speechSynthesis" in window)) return;
+    try { speechSynthesis.cancel(); } catch {}
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = 1.0;
+    u.pitch = 1.05;
+    u.volume = 1.0;
+    speechSynthesis.speak(u);
+  }
+
+  // ----- Confetti -----
+  const canvas = document.getElementById("confetti");
+  const ctx = canvas.getContext("2d");
+  let raf = null;
+  let pieces = [];
+
+  function resizeCanvas(){
+    canvas.width = Math.floor(innerWidth * devicePixelRatio);
+    canvas.height = Math.floor(innerHeight * devicePixelRatio);
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  }
+  addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  function startConfetti(ms=2200){
+    stopConfetti();
+    canvas.style.display = "block";
+
+    const W = innerWidth, H = innerHeight;
+    pieces = Array.from({length: 160}, () => ({
+      x: Math.random()*W,
+      y: -20 - Math.random()*H*0.3,
+      vx: -2 + Math.random()*4,
+      vy: 2 + Math.random()*6,
+      size: 4 + Math.random()*8,
+      rot: Math.random()*Math.PI*2,
+      vr: -0.2 + Math.random()*0.4,
+      h: Math.random()*360
+    }));
+
+    const t0 = performance.now();
+
+    function draw(t){
+      ctx.clearRect(0,0,W,H);
+      for (const p of pieces){
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+        p.vy += 0.03;
+
+        ctx.save();
+        ctx.translate(p.x,p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = `hsl(${p.h} 90% 55%)`;
+        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.7);
+        ctx.restore();
+      }
+      pieces = pieces.filter(p => p.y < H + 40);
+
+      if (t - t0 < ms && pieces.length){
+        raf = requestAnimationFrame(draw);
+      } else {
+        stopConfetti();
+      }
+    }
+
+    raf = requestAnimationFrame(draw);
+    setTimeout(stopConfetti, ms + 250);
+  }
+
+  function stopConfetti(){
+    if (raf) cancelAnimationFrame(raf);
+    raf = null;
+    pieces = [];
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    canvas.style.display = "none";
+  }
+
+  // ----- Game state -----
+  let names = { X:"X", O:"O" };
+  let scores = { X:0, O:0 };
+  let round = 1;
+
+  let cells = Array(9).fill(null); // "X"|"O"|null
+  let turn = "X";
+  let gameOver = false;
+
+  // queue per speler: oudste -> nieuwste posities
+  let q = { X: [], O: [] };
+
+  function setMsg(t){ msgEl.textContent = t; }
+
+  function setActivePlayer(){
+    pX.classList.toggle("active", !gameOver && turn === "X");
+    pO.classList.toggle("active", !gameOver && turn === "O");
+  }
+
+  function updateStats(){
+    labelX.textContent = names.X;
+    labelO.textContent = names.O;
+    scoreXEl.textContent = scores.X;
+    scoreOEl.textContent = scores.O;
+    stonesXEl.textContent = q.X.length;
+    stonesOEl.textContent = q.O.length;
+    roundPill.textContent = `Ronde ${round}`;
+    setActivePlayer();
+  }
+
+  function renderBoard(){
+    boardEl.innerHTML = "";
+    for (let i=0;i<9;i++){
+      const v = cells[i];
+      const d = document.createElement("div");
+      d.className = "cell";
+      if (v === "X") d.classList.add("X");
+      if (v === "O") d.classList.add("O");
+      d.textContent = v ? v : "";
+      if (gameOver) d.classList.add("disabled");
+      d.addEventListener("click", () => onCell(i));
+      boardEl.appendChild(d);
+    }
+    updateStats();
+  }
+
+  function checkWinner(){
+    const L = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+    for (const [a,b,c] of L){
+      if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) return cells[a];
+    }
+    return null;
+  }
+
+  function removeOldestIfNeeded(player){
+    if (q[player].length >= MAX_STONES){
+      const oldestPos = q[player].shift();
+      if (oldestPos !== undefined) cells[oldestPos] = null;
+      return true;
+    }
+    return false;
+  }
+
+  function onCell(i){
+    if (gameOver) return;
+    if (cells[i]) { setMsg("❌ Dit vakje is al bezet."); return; }
+
+    const removed = removeOldestIfNeeded(turn);
+
+    cells[i] = turn;
+    q[turn].push(i);
+
+    const w = checkWinner();
+    if (w){
+      gameOver = true;
+      scores[w] += 1;
+
+      const winnerName = names[w];
+      setMsg(`🏆 ${winnerName} wint!`);
+
+      startConfetti(2400);
+      speak(`${winnerName}, you are world champion!`);
+
+      renderBoard();
+      return;
+    }
+
+    if (removed) {
+      setMsg(`♻️ ${names[turn]}: oudste steen verdween.`);
+    } else {
+      setMsg("");
+    }
+
+    turn = (turn === "X") ? "O" : "X";
+    renderBoard();
+  }
+
+  function newRound(){
+    stopConfetti();
+    round += 1;
+    cells = Array(9).fill(null);
+    q = { X: [], O: [] };
+    turn = "X";
+    gameOver = false;
+    setMsg("");
+    renderBoard();
+  }
+
+  function resetAll(){
+    stopConfetti();
+    scores = { X:0, O:0 };
+    round = 1;
+    cells = Array(9).fill(null);
+    q = { X: [], O: [] };
+    turn = "X";
+    gameOver = false;
+    setMsg("");
+    overlay.classList.add("show");
+    renderBoard();
+  }
+
+  btnNewRound.addEventListener("click", newRound);
+  btnResetAll.addEventListener("click", resetAll);
+
+  btnQuick.addEventListener("click", () => {
+    nameXInput.value = nameXInput.value.trim() || "Leo";
+    nameOInput.value = nameOInput.value.trim() || "Mama";
+    btnStart.click();
+  });
+
+  btnStart.addEventListener("click", () => {
+    const nx = nameXInput.value.trim();
+    const no = nameOInput.value.trim();
+    names.X = nx || "X";
+    names.O = no || "O";
+    overlay.classList.remove("show");
+    newRound(); // start fresh
+  });
+
+  // First render (board visible behind overlay)
+  renderBoard();
+})();
+</script>
+</body>
+</html>
