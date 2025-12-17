@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kids Trainer</title>
+
+<style>
+  body {
+    margin:0;
+    font-family: system-ui, Arial;
+    background:#f6f7fb;
+  }
+
+  /* SCREENS */
+  .screen { display:none; padding:20px; }
+  .screen.active { display:block; }
+
+  /* MENU */
+  .menu {
+    max-width:420px;
+    margin:80px auto;
+    text-align:center;
+  }
+  .menu h1 {
+    font-size:32px;
+    margin-bottom:10px;
+  }
+  .menu p {
+    color:#555;
+    margin-bottom:30px;
+    font-weight:700;
+  }
+
+  .menu button {
+    width:100%;
+    font-size:22px;
+    padding:18px;
+    margin:12px 0;
+    border-radius:18px;
+    border:none;
+    cursor:pointer;
+    font-weight:900;
+    background:#2e3cff;
+    color:white;
+  }
+  .menu button.secondary {
+    background:#eef1ff;
+    color:#1b1f3a;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    display:flex;
+    gap:10px;
+    padding:12px;
+    background:white;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+  }
+  .topbar button {
+    padding:8px 14px;
+    border-radius:999px;
+    border:none;
+    font-weight:900;
+    cursor:pointer;
+    background:#eef1ff;
+  }
+</style>
+</head>
+<body>
+
+<!-- 🎮 MENU -->
+<div id="screenMenu" class="screen active">
+  <div class="menu">
+    <h1>🎮 Kies je spel</h1>
+    <p>Wat wil je vandaag oefenen?</p>
+
+    <button onclick="openGame('tafel')">🧮 Tafels</button>
+    <button class="secondary" onclick="openGame('spelling')">✏️ Spelling</button>
+  </div>
+</div>
+
+<!-- 🧮 TAFELTRAINER -->
+<div id="screenTafel" class="screen">
+  <div class="topbar">
+    <button onclick="backToMenu()">⬅ Menu</button>
+    <strong>🧮 Tafels</strong>
+  </div>
+
+  <!-- 👉 PLAK HIER DE INHOUD VAN tafeltrainer.html (zonder <html>, <head>, <body>) -->
+</div>
+
+<!-- ✏️ SPELLING -->
+<div id="screenSpelling" class="screen">
+  <div class="topbar">
+    <button onclick="backToMenu()">⬅ Menu</button>
+    <strong>✏️ Spelling</strong>
+  </div>
+
+  <!-- 👉 PLAK HIER DE INHOUD VAN spellingtrainer.html -->
+</div>
+
+<script>
+  function openGame(which){
+    document.getElementById("screenMenu").classList.remove("active");
+    document.getElementById("screenTafel").classList.remove("active");
+    document.getElementById("screenSpelling").classList.remove("active");
+
+    if (which === "tafel") {
+      document.getElementById("screenTafel").classList.add("active");
+    } else {
+      document.getElementById("screenSpelling").classList.add("active");
+    }
+
+    // stop eventueel lopende voice
+    if ("speechSynthesis" in window) {
+      speechSynthesis.cancel();
+    }
+  }
+
+  function backToMenu(){
+    document.getElementById("screenMenu").classList.add("active");
+    document.getElementById("screenTafel").classList.remove("active");
+    document.getElementById("screenSpelling").classList.remove("active");
+
+    if ("speechSynthesis" in window) {
+      speechSynthesis.cancel();
+    }
+  }
+</script>
+
+</body>
+</html>

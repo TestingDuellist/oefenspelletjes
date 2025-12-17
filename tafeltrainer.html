@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TafelTrainer</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --ink:#111827;
+      --accent:#2e3cff;
+      --soft:#eef1ff;
+      --soft2:#f3f5ff;
+      --danger:#c22a2a;
+      --success:#0a8a3a;
+      --radius:18px;
+    }
+    body { font-family: system-ui, Arial; margin: 0; background:var(--bg); color:var(--ink); }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 18px; }
+    .card { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: 0 8px 30px rgba(0,0,0,.07); }
+    .row { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    h1 { font-size: 22px; margin: 0; }
+    .subtitle { color:var(--muted); font-weight:700; margin-top:4px; }
+
+    .screen { display:none; }
+    .screen.active { display:block; }
+
+    .section { margin-top: 14px; }
+    .sectionTitle { font-weight: 950; margin-bottom: 8px; display:flex; align-items:center; gap:8px; }
+    .sectionCard { background: var(--soft2); padding: 12px; border-radius: 16px; }
+
+    .settingsGrid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 560px){ .settingsGrid{ grid-template-columns: 1fr; } }
+
+    label { display:block; font-weight:900; margin-bottom:6px; }
+    select, .nameInput {
+      width:100%;
+      padding:10px 12px;
+      border-radius: 14px;
+      border: 2px solid #e5e7f2;
+      font-size: 16px;
+      outline: none;
+      box-sizing: border-box;
+      background:#fff;
+    }
+    select:focus, .nameInput:focus{ border-color:#7b8cff; }
+
+    button {
+      width: 100%;
+      margin-top: 12px;
+      font-size: 18px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 0;
+      background:var(--accent);
+      color:white;
+      font-weight: 950;
+      cursor:pointer;
+    }
+    button.secondary { background:var(--soft); color:#1b1f3a; }
+    button.small { width:auto; margin-top:0; padding:10px 12px; font-size:14px; border-radius:999px; font-weight:900; }
+    button:disabled { opacity:.55; cursor:default; }
+    .row .small { margin-top:0; }
+
+    .audioBar{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background: #ffffff;
+      border: 2px solid #e7e9ff;
+      padding: 10px 12px;
+      border-radius: 16px;
+    }
+    .audioBar strong { font-weight:950; }
+    .audioBar input[type="range"]{ width: 140px; }
+
+    /* GAME UI */
+    .players { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top: 12px; }
+    @media (max-width: 560px){ .players{ grid-template-columns: 1fr; } }
+
+    .pCard { background: var(--soft2); border-radius: 16px; padding: 10px; transition: transform .25s ease, outline .25s ease; }
+    .pHead { display:flex; justify-content:space-between; align-items:center; font-weight: 950; }
+    .pill { padding:6px 10px; border-radius:999px; background:var(--soft); font-weight:950; }
+    /* IMPORTANT: player highlight is NOT .active */
+    .pActive { outline: 3px solid rgba(46,60,255,.35); transform: translateY(-2px); }
+
+    .pStats { margin-top: 6px; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; }
+    .mini { background:white; border-radius: 14px; padding: 8px; text-align:center; }
+    .mini .n { font-size: 18px; font-weight: 950; }
+
+    .progress { margin-top: 12px; font-weight: 950; text-align:center; opacity:.9; }
+    .msg { margin-top: 12px; min-height: 26px; font-weight: 950; text-align:center; }
+    .good { color:var(--success); }
+    .bad  { color:var(--danger); }
+    .smalltxt { font-size: 12px; opacity:.75; margin-top: 6px; text-align:center; }
+
+    .sum { font-size: 44px; font-weight: 950; letter-spacing: .5px; text-align:center; margin: 18px 0; }
+    .answerInput{
+      width: 100%;
+      font-size: 28px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 2px solid #e5e7f2;
+      outline: none;
+      text-align: center;
+      box-sizing: border-box;
+      background:#fff;
+    }
+    .answerInput:focus { border-color:#7b8cff; }
+
+    /* Timer bar */
+    .timeWrap { margin-top: 10px; }
+    .timeTop { display:flex; justify-content:space-between; align-items:center; font-weight:950; opacity:.85; }
+    .barOuter { height: 14px; background:var(--soft); border-radius: 999px; overflow:hidden; border: 2px solid #e7e9ff; }
+    .barInner { height: 14px; width: 100%; background:var(--accent); transform-origin:left center; transition: transform 0.2s linear; }
+
+    /* Turn switch animation */
+    .turnAnim { animation: turnPulse .35s ease; }
+    @keyframes turnPulse {
+      0% { transform: translateX(0); }
+      35% { transform: translateX(10px); }
+      100% { transform: translateX(0); }
+    }
+
+    /* Overlays */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, .55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index: 9999;
+      padding: 18px;
+    }
+    .overlay.show { display:flex; }
+    .overlayCard{
+      width: min(520px, 92vw);
+      background: #0b1024;
+      color: white;
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 14px 50px rgba(0,0,0,.35);
+      text-align:center;
+    }
+    .overlayBig { font-size: 72px; font-weight: 1000; letter-spacing: 1px; }
+    .overlaySub { opacity:.85; font-weight: 850; margin-top: 6px; }
+    .badge {
+      display:inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      font-weight: 900;
+      margin-top: 10px;
+    }
+
+    /* Name modal card (white) */
+    .modalCard{
+      width: min(520px, 92vw);
+      background: #ffffff;
+      color: var(--ink);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 14px 50px rgba(0,0,0,.35);
+      text-align:left;
+    }
+    .modalTitle{ font-size:22px; font-weight:1000; margin:0; }
+    .modalHint{ color:var(--muted); font-weight:800; margin-top:6px; }
+    .modalGrid{ margin-top:14px; display:grid; gap:10px; }
+    .modalActions{ display:flex; gap:10px; margin-top:14px; }
+    .modalActions button{ margin-top:0; }
+
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+
+<!-- Countdown overlay -->
+<div class="overlay" id="countdownOverlay">
+  <div class="overlayCard">
+    <div class="badge" id="countdownBadge">Klaar…</div>
+    <div class="overlayBig" id="countdownBig">3</div>
+    <div class="overlaySub" id="countdownSub">Start bijna…</div>
+  </div>
+</div>
+
+<!-- Name modal overlay -->
+<div class="overlay" id="nameOverlay" aria-hidden="true">
+  <div class="modalCard">
+    <div class="badge" style="background:var(--soft); color:var(--ink);">👤 Namen invullen</div>
+    <p class="modalTitle" style="margin-top:10px;">Wie spelen er mee?</p>
+    <div class="modalHint">Vul de namen in en druk op Verder.</div>
+
+    <div class="modalGrid">
+      <div>
+        <label>Speler 1</label>
+        <input id="nameModal1" class="nameInput" placeholder="Bijv. Leo" />
+      </div>
+
+      <div id="nameModal2Wrap">
+        <label>Speler 2</label>
+        <input id="nameModal2" class="nameInput" placeholder="Bijv. Mama" />
+      </div>
+
+      <div id="nameModalError" class="bad hidden">Vul alle namen in.</div>
+    </div>
+
+    <div class="modalActions">
+      <button id="nameCancel" class="secondary">Annuleren</button>
+      <button id="nameConfirm">Verder ▶</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <div class="row">
+      <div>
+        <h1>TafelTrainer</h1>
+        <div class="subtitle">Co-op oefenen met tafels — punten, combo, timer & voice</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS SCREEN -->
+    <div id="screenSettings" class="screen active">
+      <div class="section">
+        <div class="sectionTitle">🎛️ Instellingen</div>
+        <div class="sectionCard">
+          <div class="settingsGrid">
+            <div>
+              <label>Modus</label>
+              <select id="mode">
+                <option value="solo">Solo</option>
+                <option value="coop" selected>Co-op (om de beurt)</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Vragen per sessie</label>
+              <select id="questionCount">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30" selected>30</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Naam speler 1</label>
+              <input id="name1" class="nameInput" placeholder="Bijv. Leo" value="" />
+            </div>
+
+            <div>
+              <label>Naam speler 2</label>
+              <input id="name2" class="nameInput" placeholder="Bijv. Mama" value="" />
+            </div>
+
+            <div>
+              <label>Tafel</label>
+              <select id="table">
+                <option value="all">Alles (1-10)</option>
+                <option value="1">Tafel van 1</option>
+                <option value="2">Tafel van 2</option>
+                <option value="3">Tafel van 3</option>
+                <option value="4">Tafel van 4</option>
+                <option value="5">Tafel van 5</option>
+                <option value="6">Tafel van 6</option>
+                <option value="7">Tafel van 7</option>
+                <option value="8">Tafel van 8</option>
+                <option value="9">Tafel van 9</option>
+                <option value="10">Tafel van 10</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Moeilijkheid</label>
+              <select id="range">
+                <option value="10" selected>× 1 t/m 10</option>
+                <option value="12">× 1 t/m 12</option>
+                <option value="20">× 1 t/m 20</option>
+              </select>
+            </div>
+
+            <div>
+              <label>⏱️ Timer</label>
+              <select id="timerMode">
+                <option value="on" selected>Aan</option>
+                <option value="off">Uit</option>
+              </select>
+            </div>
+
+            <div>
+              <label>⌛ Tijd per vraag</label>
+              <select id="timeSetting">
+                <option value="5">5 seconden</option>
+                <option value="10">10 seconden</option>
+                <option value="20" selected>20 seconden</option>
+                <option value="30">30 seconden</option>
+                <option value="45">45 seconden</option>
+                <option value="60">60 seconden</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sectionTitle">🔊 Geluid & 🗣️ Voice</div>
+        <div class="sectionCard">
+          <div class="audioBar">
+            <button id="soundToggle" class="secondary small">🔊 Geluid: aan</button>
+            <strong>Volume</strong>
+            <input id="volume" type="range" min="0" max="100" value="60" />
+            <button id="soundTest" class="secondary small">🎵 Test</button>
+          </div>
+
+          <div style="height:10px;"></div>
+
+          <div class="audioBar">
+            <button id="voiceToggle" class="secondary small">🗣️ Voice: uit</button>
+            <strong>Omroepen</strong>
+            <button id="voiceTest" class="secondary small">🗣️ Test</button>
+            <div style="color:var(--muted); font-weight:800;">NL</div>
+          </div>
+
+          <div class="smalltxt">Tip: op iPhone/iPad werkt audio/voice pas na een tik (bijv. Start).</div>
+        </div>
+      </div>
+
+      <button id="btnStart">▶ Start (3…2…1…)</button>
+      <div class="smalltxt">Na Start verschijnt een countdown op het spelscherm, met voice + geluid.</div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="screenGame" class="screen">
+      <!-- Top bar buttons -->
+      <div class="row" style="margin-top:8px;">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button id="btnToSettings" class="secondary small">⚙️ Instellingen</button>
+          <button id="btnPause" class="secondary small">⏸ Pauze</button>
+        </div>
+      </div>
+
+      <div class="players" id="players">
+        <div class="pCard" id="p1Card">
+          <div class="pHead">
+            <div id="p1Label">👧 Speler 1</div>
+            <div class="pill" id="turnPill">Aan zet: —</div>
+          </div>
+          <div class="pStats">
+            <div class="mini"><div class="n" id="p1Points">0</div><div>Punten</div></div>
+            <div class="mini"><div class="n" id="p1Combo">0</div><div>Combo</div></div>
+            <div class="mini"><div class="n" id="p1Good">0</div><div>Goed</div></div>
+          </div>
+        </div>
+
+        <div class="pCard" id="p2Card">
+          <div class="pHead">
+            <div id="p2Label">👨 Speler 2</div>
+            <div class="pill" id="suddenPill" style="opacity:.0;">Sudden death</div>
+          </div>
+          <div class="pStats">
+            <div class="mini"><div class="n" id="p2Points">0</div><div>Punten</div></div>
+            <div class="mini"><div class="n" id="p2Combo">0</div><div>Combo</div></div>
+            <div class="mini"><div class="n" id="p2Good">0</div><div>Goed</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress" id="progress">Vraag —</div>
+
+      <div class="timeWrap">
+        <div class="timeTop">
+          <div>⏱️ Tijd</div>
+          <div id="timeLabel">20s</div>
+        </div>
+        <div class="barOuter">
+          <div class="barInner" id="timeBar"></div>
+        </div>
+      </div>
+
+      <div class="sum" id="sum">—</div>
+
+      <input id="answer" class="answerInput" inputmode="numeric" autocomplete="off" placeholder="Typ antwoord…" />
+      <button id="check">Check ✅</button>
+      <button id="next" class="secondary">Volgende ➜</button>
+
+      <div id="msg" class="msg"></div>
+      <div class="smalltxt">Enter = check. Co-op wisselt automatisch. Bij gelijkspel: Sudden death.</div>
+    </div>
+
+    <!-- END SCREEN -->
+    <div id="screenEnd" class="screen">
+      <div class="sum" style="font-size:28px;">Sessie klaar 🎉</div>
+      <div class="progress" id="endTitle"></div>
+      <div class="sectionCard" style="margin-top:12px;">
+        <div class="smalltxt" id="endText" style="white-space:pre-line;"></div>
+      </div>
+      <button id="btnRestart" class="secondary">🔁 Opnieuw</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(() => {
+  // ---------------- DOM ----------------
+  const screenSettings = document.getElementById("screenSettings");
+  const screenGame = document.getElementById("screenGame");
+  const screenEnd = document.getElementById("screenEnd");
+
+  const btnStart = document.getElementById("btnStart");
+  const btnRestart = document.getElementById("btnRestart");
+  const btnPause = document.getElementById("btnPause");
+  const btnToSettings = document.getElementById("btnToSettings");
+
+  const elMode = document.getElementById("mode");
+  const elQuestionCount = document.getElementById("questionCount");
+  const elName1 = document.getElementById("name1");
+  const elName2 = document.getElementById("name2");
+  const elTable = document.getElementById("table");
+  const elRange = document.getElementById("range");
+  const elTimerMode = document.getElementById("timerMode");
+  const elTimeSetting = document.getElementById("timeSetting");
+
+  const p1Card = document.getElementById("p1Card");
+  const p2Card = document.getElementById("p2Card");
+  const p1Label = document.getElementById("p1Label");
+  const p2Label = document.getElementById("p2Label");
+  const turnPill = document.getElementById("turnPill");
+  const suddenPill = document.getElementById("suddenPill");
+
+  const p1Points = document.getElementById("p1Points");
+  const p1Combo  = document.getElementById("p1Combo");
+  const p1Good   = document.getElementById("p1Good");
+  const p2Points = document.getElementById("p2Points");
+  const p2Combo  = document.getElementById("p2Combo");
+  const p2Good   = document.getElementById("p2Good");
+
+  const progress = document.getElementById("progress");
+  const sumEl = document.getElementById("sum");
+  const answerEl = document.getElementById("answer");
+  const btnCheck = document.getElementById("check");
+  const btnNext = document.getElementById("next");
+  const msgEl = document.getElementById("msg");
+
+  const timeLabel = document.getElementById("timeLabel");
+  const timeBar = document.getElementById("timeBar");
+
+  const endTitle = document.getElementById("endTitle");
+  const endText = document.getElementById("endText");
+
+  // Overlays
+  const countdownOverlay = document.getElementById("countdownOverlay");
+  const countdownBig = document.getElementById("countdownBig");
+  const countdownSub = document.getElementById("countdownSub");
+  const countdownBadge = document.getElementById("countdownBadge");
+
+  const nameOverlay = document.getElementById("nameOverlay");
+  const nameModal1 = document.getElementById("nameModal1");
+  const nameModal2 = document.getElementById("nameModal2");
+  const nameModal2Wrap = document.getElementById("nameModal2Wrap");
+  const nameModalError = document.getElementById("nameModalError");
+  const nameCancel = document.getElementById("nameCancel");
+  const nameConfirm = document.getElementById("nameConfirm");
+  let pendingStart = false;
+
+  // ---------------- SOUND (WebAudio) ----------------
+  const btnSoundToggle = document.getElementById("soundToggle");
+  const btnSoundTest = document.getElementById("soundTest");
+  const volEl = document.getElementById("volume");
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const audioCtx = AudioCtx ? new AudioCtx() : null;
+
+  // DEFAULT AAN
+  let soundEnabled = true;
+
+  let masterGain = null;
+  if (audioCtx) {
+    masterGain = audioCtx.createGain();
+    masterGain.connect(audioCtx.destination);
+  }
+
+  function setVolumeFromUI() {
+    if (!masterGain) return;
+    masterGain.gain.value = (parseInt(volEl.value, 10) / 100) * 0.9;
+  }
+
+  async function unlockAudio() {
+    if (!audioCtx) return false;
+    if (audioCtx.state === "suspended") { try { await audioCtx.resume(); } catch {} }
+    return audioCtx.state === "running";
+  }
+
+  function setSoundUI() {
+    btnSoundToggle.textContent = soundEnabled ? "🔊 Geluid: aan" : "🔇 Geluid: uit";
+  }
+
+  function tone(freq, delayMs, durMs, type="sine", peak=0.18) {
+    if (!audioCtx || !masterGain || !soundEnabled) return;
+    const now = audioCtx.currentTime;
+    const t0 = now + (delayMs / 1000);
+
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t0);
+
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + (durMs / 1000));
+
+    o.connect(g); g.connect(masterGain);
+    o.start(t0);
+    o.stop(t0 + (durMs / 1000) + 0.02);
+  }
+
+  function sGood(){ tone(880,0,140,"sine",0.20); tone(1175,120,140,"sine",0.16); tone(1319,240,160,"sine",0.14); }
+  function sSuper(){ tone(1319,0,110,"triangle",0.18); tone(1568,90,110,"triangle",0.16); tone(2093,180,140,"triangle",0.14); }
+  function sBad(){ tone(330,0,180,"square",0.10); tone(220,120,220,"square",0.08); }
+  function sTime(){ tone(523,0,140,"sawtooth",0.08); tone(392,160,180,"sawtooth",0.08); }
+  function sWin(){ tone(659,0,120,"sine",0.14); tone(784,140,120,"sine",0.14); tone(988,280,160,"sine",0.14); tone(1319,470,220,"sine",0.14); }
+  function sTick(){ tone(523,0,90,"sine",0.12); }
+  function sGo(){ tone(784,0,120,"sine",0.16); tone(1046,140,160,"sine",0.16); }
+
+  btnSoundToggle.addEventListener("click", async () => {
+    if (!audioCtx) return;
+    const ok = await unlockAudio();
+    if (!ok) return;
+    soundEnabled = !soundEnabled;
+    setSoundUI();
+    if (soundEnabled) sGood();
+  });
+
+  btnSoundTest.addEventListener("click", async () => {
+    if (!audioCtx) return;
+    const ok = await unlockAudio();
+    if (!ok) return;
+    if (!soundEnabled) { soundEnabled = true; setSoundUI(); }
+    sSuper();
+  });
+
+  volEl.addEventListener("input", () => setVolumeFromUI());
+
+  // ---------------- VOICE ----------------
+  const btnVoiceToggle = document.getElementById("voiceToggle");
+  const btnVoiceTest = document.getElementById("voiceTest");
+  let voiceEnabled = false;
+
+  function setVoiceUI() {
+    btnVoiceToggle.textContent = voiceEnabled ? "🗣️ Voice: aan" : "🗣️ Voice: uit";
+  }
+
+  function speak(text) {
+    if (!voiceEnabled) return;
+    if (!("speechSynthesis" in window)) return;
+    try { window.speechSynthesis.cancel(); } catch {}
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "nl-NL";
+    u.rate = 1.0;
+    u.pitch = 1.0;
+    u.volume = 1.0;
+    window.speechSynthesis.speak(u);
+  }
+
+  btnVoiceToggle.addEventListener("click", () => {
+    voiceEnabled = !voiceEnabled;
+    setVoiceUI();
+    if (voiceEnabled) speak("Voice staat aan.");
+  });
+
+  btnVoiceTest.addEventListener("click", () => {
+    const n1 = (elName1.value || "Speler 1").trim();
+    speak(`${n1} is aan de beurt!`);
+  });
+
+  // ---------------- GAME STATE ----------------
+  const FAST_SUPER_MS = 3000;
+  const FAST_OK_MS = 10000;
+  const BASE_POINTS = 10;
+  const SUPER_BONUS = 15;
+  const FAST_BONUS = 5;
+  const COMBO_BONUS_PER = 2;
+
+  let running = false;
+  let paused = false;
+
+  let MAX_Q = 30;
+  let TIMER_ENABLED = true;
+  let TIME_PER_SUM = 20;
+
+  let questionIndex = 0;
+  let currentPlayer = 1;
+
+  let a=1,b=1,correctAnswer=1;
+  let timer = null;
+  let timeLeft = 0;
+  let startMs = 0;
+
+  let suddenDeath = false;
+
+  const players = {
+    1: { points: 0, combo: 0, good: 0, name: "Speler 1" },
+    2: { points: 0, combo: 0, good: 0, name: "Speler 2" },
+  };
+
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+  function showScreen(which) {
+    screenSettings.classList.toggle("active", which === "settings");
+    screenGame.classList.toggle("active", which === "game");
+    screenEnd.classList.toggle("active", which === "end");
+  }
+
+  function refreshNames() {
+    const n1 = (elName1.value || "").trim();
+    const n2 = (elName2.value || "").trim();
+    players[1].name = n1 || "Speler 1";
+    players[2].name = n2 || "Speler 2";
+    p1Label.textContent = `👧 ${players[1].name}`;
+    p2Label.textContent = `👨 ${players[2].name}`;
+  }
+
+  function renderPlayers(){
+    p1Points.textContent = players[1].points;
+    p1Combo.textContent  = players[1].combo;
+    p1Good.textContent   = players[1].good;
+
+    p2Points.textContent = players[2].points;
+    p2Combo.textContent  = players[2].combo;
+    p2Good.textContent   = players[2].good;
+
+    turnPill.textContent = `Aan zet: ${players[currentPlayer].name}`;
+
+    const solo = (elMode.value === "solo");
+    p2Card.classList.toggle("hidden", solo);
+
+    const coop = (elMode.value === "coop");
+    p1Card.classList.toggle("pActive", coop && currentPlayer === 1);
+    p2Card.classList.toggle("pActive", coop && currentPlayer === 2);
+
+    suddenPill.style.opacity = suddenDeath ? "1" : "0";
+  }
+
+  function showMsg(text, good){
+    msgEl.textContent = text;
+    msgEl.className = "msg " + (good ? "good":"bad");
+  }
+
+  function updateProgress(){
+    const who = (elMode.value === "coop") ? ` • ${players[currentPlayer].name} aan zet` : "";
+    const sd = suddenDeath ? " • SUDDEN DEATH" : "";
+    progress.textContent = `Vraag ${Math.min(questionIndex+1, MAX_Q)} / ${MAX_Q}${who}${sd}`;
+  }
+
+  function stopTimer(){
+    clearInterval(timer);
+    timer = null;
+  }
+
+  function applyTimerUI(){
+    if (!TIMER_ENABLED){
+      timeLabel.textContent = "∞";
+      timeBar.style.transform = "scaleX(1)";
+      timeBar.style.opacity = "0.55";
+      return;
+    }
+    timeLabel.textContent = `${timeLeft}s`;
+    const ratio = Math.max(0, Math.min(1, timeLeft / TIME_PER_SUM));
+    timeBar.style.transform = `scaleX(${ratio})`;
+    timeBar.style.opacity = "1";
+  }
+
+  function startTimer(){
+    stopTimer();
+
+    if (!TIMER_ENABLED){
+      timeLeft = 0;
+      applyTimerUI();
+      return;
+    }
+
+    timeLeft = TIME_PER_SUM;
+    applyTimerUI();
+
+    timer = setInterval(() => {
+      if (!running || paused) return;
+      timeLeft -= 1;
+      applyTimerUI();
+
+      if (timeLeft <= 0){
+        stopTimer();
+        players[currentPlayer].combo = 0;
+        sTime();
+        showMsg(`⏰ Tijd op! Antwoord was ${correctAnswer}`, false);
+        nextQuestion(true);
+      }
+    }, 1000);
+  }
+
+  function pickNewSum(){
+    const maxB = parseInt(elRange.value, 10);
+    const table = elTable.value;
+
+    a = (table === "all") ? randInt(1,10) : parseInt(table,10);
+    b = randInt(1, maxB);
+    correctAnswer = a*b;
+
+    sumEl.textContent = `${a} × ${b} = ?`;
+    answerEl.value = "";
+    answerEl.focus();
+    showMsg("", true);
+
+    startMs = Date.now();
+    startTimer();
+  }
+
+  function animateTurnSwitch(){
+    p1Card.classList.remove("turnAnim");
+    p2Card.classList.remove("turnAnim");
+    void p1Card.offsetWidth; void p2Card.offsetWidth;
+    (currentPlayer === 1 ? p1Card : p2Card).classList.add("turnAnim");
+    setTimeout(() => {
+      p1Card.classList.remove("turnAnim");
+      p2Card.classList.remove("turnAnim");
+    }, 360);
+  }
+
+  function nextTurn(){
+    if (elMode.value !== "coop") return;
+    currentPlayer = (currentPlayer === 1) ? 2 : 1;
+    renderPlayers();
+    animateTurnSwitch();
+    speak(`${players[currentPlayer].name} is aan de beurt!`);
+  }
+
+  function awardPoints(msTaken){
+    let bonus = 0;
+    if (msTaken < FAST_SUPER_MS) bonus = SUPER_BONUS;
+    else if (msTaken < FAST_OK_MS) bonus = FAST_BONUS;
+
+    const comboExtra = Math.max(0, (players[currentPlayer].combo - 1) * COMBO_BONUS_PER);
+    const gained = BASE_POINTS + bonus + comboExtra;
+    players[currentPlayer].points += gained;
+
+    return {
+      gained,
+      tag: (msTaken < FAST_SUPER_MS) ? "⚡ SUPER!" : (msTaken < FAST_OK_MS) ? "🚀 Snel!" : "✅ Goed!"
+    };
+  }
+
+  // -------- Countdown ----------
+  function showCountdownOverlay(show){
+    countdownOverlay.classList.toggle("show", show);
+  }
+
+  async function runCountdown(){
+    paused = true;
+    btnPause.textContent = "⏸ Pauze"; // reset label
+    showCountdownOverlay(true);
+
+    const who = (elMode.value === "coop") ? players[currentPlayer].name : players[1].name;
+    countdownBadge.textContent = `Klaar, ${who}?`;
+    countdownSub.textContent = "Let op…";
+
+    const steps = ["3","2","1","START!"];
+    for (let i=0;i<steps.length;i++){
+      countdownBig.textContent = steps[i];
+
+      if (steps[i] === "START!") {
+        countdownSub.textContent = "GO!";
+        sGo();
+        speak("Start!");
+      } else {
+        countdownSub.textContent = "…";
+        sTick();
+        speak(steps[i]);
+      }
+
+      await new Promise(r => setTimeout(r, steps[i] === "START!" ? 650 : 800));
+    }
+
+    showCountdownOverlay(false);
+    paused = false;
+    answerEl.focus();
+  }
+
+  // -------- Name modal ----------
+  function openNameModal() {
+    const mode = elMode.value;
+    nameModal2Wrap.style.display = (mode === "coop") ? "block" : "none";
+
+    nameModal1.value = (elName1.value || "").trim();
+    nameModal2.value = (elName2.value || "").trim();
+
+    nameModalError.classList.add("hidden");
+    nameOverlay.classList.add("show");
+    nameOverlay.setAttribute("aria-hidden", "false");
+
+    setTimeout(() => {
+      nameModal1.focus();
+      nameModal1.select();
+    }, 0);
+  }
+
+  function closeNameModal() {
+    nameOverlay.classList.remove("show");
+    nameOverlay.setAttribute("aria-hidden", "true");
+  }
+
+  function namesAreValid() {
+    const n1 = nameModal1.value.trim();
+    if (!n1) return false;
+    if (elMode.value === "coop") {
+      const n2 = nameModal2.value.trim();
+      if (!n2) return false;
+    }
+    return true;
+  }
+
+  function commitNamesFromModal() {
+    elName1.value = nameModal1.value.trim();
+    if (elMode.value === "coop") elName2.value = nameModal2.value.trim();
+  }
+
+  nameCancel.addEventListener("click", () => {
+    pendingStart = false;
+    closeNameModal();
+  });
+
+  nameConfirm.addEventListener("click", async () => {
+    if (!namesAreValid()) {
+      nameModalError.classList.remove("hidden");
+      return;
+    }
+    commitNamesFromModal();
+    closeNameModal();
+
+    if (pendingStart) {
+      pendingStart = false;
+      await unlockAudio();
+      startGame();
+    }
+  });
+
+  [nameModal1, nameModal2].forEach(inp => {
+    inp.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") nameConfirm.click();
+    });
+  });
+
+  nameOverlay.addEventListener("click", (e) => {
+    if (e.target === nameOverlay) nameCancel.click();
+  });
+
+  // -------- Sudden death ----------
+  function startSuddenDeath(){
+    suddenDeath = true;
+    speak("Gelijkspel. Sudden death!");
+    showMsg("🤝 Gelijkspel! SUDDEN DEATH: volgende vraag beslist!", true);
+    renderPlayers();
+  }
+
+  function endGame(){
+    running = false;
+    paused = false;
+    stopTimer();
+
+    const p1 = players[1], p2 = players[2];
+    let title = "";
+    let winnerName = "";
+
+    if (elMode.value === "solo") {
+      winnerName = p1.name;
+      title = `Klaar! ${winnerName} scoorde ${p1.points} punten.`;
+    } else {
+      if (p1.points > p2.points) { winnerName = p1.name; title = `🏆 ${p1.name} heeft gewonnen!`; }
+      else if (p2.points > p1.points) { winnerName = p2.name; title = `🏆 ${p2.name} heeft gewonnen!`; }
+      else { title = "🤝 Gelijkspel!"; }
+    }
+
+    endTitle.textContent = title;
+    endText.textContent =
+`${p1.name}: ${p1.points} punten • ${p1.good} goed
+${p2.name}: ${p2.points} punten • ${p2.good} goed`;
+
+    if (winnerName) {
+      sWin();
+      speak(`Winnaar is ${winnerName}.`);
+    } else {
+      speak("Gelijkspel.");
+    }
+
+    showScreen("end");
+  }
+
+  function nextQuestion(fromTimeout=false){
+    setTimeout(() => {
+      if (!running) return;
+
+      questionIndex += 1;
+
+      if (!suddenDeath && questionIndex >= MAX_Q){
+        if (elMode.value === "coop" && players[1].points === players[2].points) {
+          startSuddenDeath();
+        } else {
+          endGame();
+          return;
+        }
+      }
+
+      if (suddenDeath && elMode.value === "coop") {
+        if (players[1].points !== players[2].points) {
+          endGame();
+          return;
+        }
+        showMsg("⚔️ Nog steeds gelijk! Volgende vraag beslist!", true);
+      }
+
+      if (elMode.value === "coop") nextTurn();
+      updateProgress();
+      pickNewSum();
+    }, fromTimeout ? 650 : 550);
+  }
+
+  function checkAnswer(){
+    if (!running || paused) return;
+
+    const raw = answerEl.value.trim();
+    if (!raw) return;
+
+    const val = Number(raw);
+    if (!Number.isFinite(val)) return;
+
+    if (val === correctAnswer){
+      stopTimer();
+      const msTaken = Date.now() - startMs;
+
+      players[currentPlayer].good += 1;
+      players[currentPlayer].combo += 1;
+
+      const { gained, tag } = awardPoints(msTaken);
+      if (msTaken < FAST_SUPER_MS) sSuper(); else sGood();
+
+      renderPlayers();
+      const sec = (msTaken/1000).toFixed(1);
+      showMsg(`${tag} (+${gained} punten, ${sec}s)`, true);
+
+      nextQuestion(false);
+    } else {
+      players[currentPlayer].combo = 0;
+      sBad();
+      renderPlayers();
+      showMsg("❌ Fout, probeer opnieuw (tijd loopt door)", false);
+      answerEl.select();
+    }
+  }
+
+  function startGame(){
+    refreshNames();
+
+    MAX_Q = parseInt(elQuestionCount.value, 10);
+    TIMER_ENABLED = (elTimerMode.value === "on");
+    TIME_PER_SUM = parseInt(elTimeSetting.value, 10);
+
+    players[1].points = players[1].combo = players[1].good = 0;
+    players[2].points = players[2].combo = players[2].good = 0;
+
+    questionIndex = 0;
+    currentPlayer = 1;
+    suddenDeath = false;
+
+    running = true;
+    paused = false;
+
+    btnPause.textContent = "⏸ Pauze";
+
+    renderPlayers();
+    updateProgress();
+    showScreen("game");
+
+    if (elMode.value === "coop") speak(`${players[currentPlayer].name} is aan de beurt!`);
+
+    // prepare question, then countdown, then restart timer clean
+    pickNewSum();
+    runCountdown().then(() => {
+      stopTimer();
+      startTimer();
+      answerEl.focus();
+    });
+  }
+
+  // ---------------- Pause + Settings buttons (GAME) ----------------
+  function pauseToggle(){
+    if (!running) return;
+    paused = !paused;
+    btnPause.textContent = paused ? "▶ Verder" : "⏸ Pauze";
+    if (!paused) answerEl.focus();
+  }
+
+  function backToSettings(){
+    // stop game netjes
+    running = false;
+    paused = false;
+    stopTimer();
+    btnPause.textContent = "⏸ Pauze";
+    showScreen("settings");
+  }
+
+  btnPause.addEventListener("click", pauseToggle);
+  btnToSettings.addEventListener("click", backToSettings);
+
+  // ---------------- EVENTS ----------------
+  btnStart.addEventListener("click", async () => {
+    const mode = elMode.value;
+    const n1 = (elName1.value || "").trim();
+    const n2 = (elName2.value || "").trim();
+    const needModal = !n1 || (mode === "coop" && !n2);
+
+    if (needModal) {
+      pendingStart = true;
+      openNameModal();
+      return;
+    }
+
+    await unlockAudio();
+    startGame();
+  });
+
+  btnRestart.addEventListener("click", () => {
+    // terug naar settings (handig om opnieuw te kiezen)
+    backToSettings();
+  });
+
+  btnCheck.addEventListener("click", async () => { await unlockAudio(); checkAnswer(); });
+  btnNext.addEventListener("click", () => running && !paused && nextQuestion(false));
+  answerEl.addEventListener("keydown", (e) => { if (e.key === "Enter") checkAnswer(); });
+
+  // init
+  setSoundUI();
+  setVoiceUI();
+  setVolumeFromUI();
+  refreshNames();
+  renderPlayers();
+  timeLeft = parseInt(elTimeSetting.value, 10);
+  applyTimerUI();
+  showScreen("settings");
+})();
+</script>
+</body>
+</html>
