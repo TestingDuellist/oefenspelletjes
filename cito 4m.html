@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cito 4M Oefentoets</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --ink:#111827;
+      --accent:#2e3cff;
+      --soft:#eef1ff;
+      --soft2:#f3f5ff;
+      --danger:#c22a2a;
+      --success:#0a8a3a;
+      --radius:18px;
+      --line:#e5e7f2;
+      --shadow:0 8px 30px rgba(0,0,0,.07);
+    }
+    *{box-sizing:border-box}
+    body { font-family: system-ui, Arial; margin: 0; background:var(--bg); color:var(--ink); }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 18px; }
+    .card { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); border:1px solid rgba(229,231,242,.8); }
+
+    .row { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    h1 { font-size: 22px; margin: 0; }
+    .subtitle { color:var(--muted); font-weight:800; margin-top:4px; }
+    .pill { padding:6px 10px; border-radius:999px; background:var(--soft); font-weight:950; border:1px solid rgba(229,231,242,.8); }
+
+    .screen { display:none; }
+    .screen.active { display:block; }
+
+    .section { margin-top: 14px; }
+    .sectionTitle { font-weight: 950; margin-bottom: 8px; display:flex; align-items:center; gap:8px; }
+    .sectionCard { background: var(--soft2); padding: 12px; border-radius: 16px; border:1px solid rgba(229,231,242,.8); }
+
+    .settingsGrid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 640px){ .settingsGrid{ grid-template-columns: 1fr; } }
+
+    label { display:block; font-weight:950; margin-bottom:6px; }
+    select, .nameInput, .numInput {
+      width:100%;
+      padding:10px 12px;
+      border-radius: 14px;
+      border: 2px solid var(--line);
+      font-size: 16px;
+      outline: none;
+      background:#fff;
+      font-weight:800;
+    }
+    select:focus, .nameInput:focus, .numInput:focus{ border-color:#7b8cff; }
+
+    .toggleRow{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      background:#fff; border:2px solid var(--line); border-radius:14px; padding:10px 12px;
+    }
+    .toggleRow .left{display:flex; flex-direction:column; gap:2px}
+    .toggleRow .left .t{font-weight:1000}
+    .toggleRow .left .s{font-size:12px; color:var(--muted); font-weight:850}
+    .toggleRow input[type="checkbox"]{ width:22px; height:22px; }
+
+    button {
+      width: 100%;
+      margin-top: 12px;
+      font-size: 18px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 0;
+      background:var(--accent);
+      color:white;
+      font-weight: 950;
+      cursor:pointer;
+    }
+    button.secondary { background:var(--soft); color:#1b1f3a; border:1px solid rgba(229,231,242,.8); }
+    button.small { width:auto; margin-top:0; padding:10px 12px; font-size:14px; border-radius:999px; font-weight:900; }
+    button.danger { background:#fff0f0; color:#8c1f1f; border:1px solid rgba(194,42,42,.25); }
+    button:disabled { opacity:.55; cursor:default; }
+
+    /* Progress bar */
+    .progressWrap{ margin-top:12px; }
+    .progressTop{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .progressText{ font-weight:1000; color:var(--muted); }
+    .bar{ height:10px; background:#e7e9f5; border-radius:999px; overflow:hidden; }
+    .bar > div{ height:100%; width:0%; background:linear-gradient(90deg,var(--accent),#7b8cff); transition:width .25s ease; }
+
+    /* Timer badge + time bar */
+    .timerRow{
+      margin-top:10px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .timerBadge{
+      padding:6px 10px; border-radius:999px;
+      background:#fff; border:2px solid var(--line);
+      font-weight:1000;
+    }
+    .timeBar{ flex:1; min-width:200px; height:10px; background:#e7e9f5; border-radius:999px; overflow:hidden; }
+    .timeBar > div{ height:100%; width:100%; background:linear-gradient(90deg,#7b8cff,var(--accent)); transition:width .2s linear; }
+
+    .msg { margin-top: 12px; min-height: 26px; font-weight: 950; text-align:center; }
+    .good { color:var(--success); }
+    .bad  { color:var(--danger); }
+
+    .qBox{
+      margin-top: 14px;
+      background: var(--soft2);
+      border-radius: 16px;
+      padding: 12px;
+      border:1px solid rgba(229,231,242,.8);
+    }
+    .qMeta{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .qNr{ font-weight:1000; }
+    .qDomain{ color:var(--muted); font-weight:900; }
+    .qText{
+      margin-top:10px;
+      font-size:18px;
+      font-weight:1000;
+      line-height:1.25;
+      white-space:pre-line; /* <-- belangrijk: verhaaltjes netjes onder elkaar */
+    }
+
+    .opts{ margin-top: 12px; display:grid; gap:10px; }
+    .opt{
+      display:flex; gap:10px; align-items:flex-start;
+      background:#fff;
+      border:2px solid var(--line);
+      border-radius: 14px;
+      padding:10px 12px;
+      cursor:pointer;
+    }
+    .opt:hover{ border-color: rgba(123,140,255,.65); }
+    .opt input{ margin-top:4px; }
+    .opt .t{ font-weight:900; }
+
+    .navRow{ display:flex; gap:10px; margin-top:12px; }
+    .navRow button{ margin-top:0; width:50%; }
+
+    /* End screen review */
+    .reviewItem{
+      margin-top:10px;
+      background:#fff;
+      border:2px solid var(--line);
+      border-radius:16px;
+      padding:10px 12px;
+    }
+    .reviewHead{ display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap; }
+    .tag{
+      padding:6px 10px;border-radius:999px;font-weight:1000;font-size:12px;
+      border:1px solid rgba(229,231,242,.8); background:var(--soft2); color:var(--muted);
+    }
+    .tag.good{ border-color:rgba(10,138,58,.25); background:rgba(10,138,58,.06); color:var(--success); }
+    .tag.bad{ border-color:rgba(194,42,42,.25); background:rgba(194,42,42,.06); color:var(--danger); }
+    .mini{ margin-top:6px; font-size:13px; font-weight:850; color:var(--muted); }
+    .mini .b{ color:var(--ink); font-weight:1000; }
+
+    .bigScore{
+      font-size:44px;
+      font-weight:1000;
+      letter-spacing:.5px;
+      text-align:center;
+      margin: 12px 0 4px;
+    }
+    .smalltxt { font-size: 12px; opacity:.75; margin-top: 6px; text-align:center; white-space:pre-line; }
+
+    /* Countdown overlay */
+    .overlay{
+      position:fixed; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      background:rgba(17,24,39,.55);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+    }
+    .overlay.active{ display:flex; }
+    .countBox{
+      width:min(520px, 92vw);
+      background:#fff;
+      border:1px solid rgba(229,231,242,.8);
+      border-radius:24px;
+      padding:28px 18px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.18);
+      text-align:center;
+    }
+    .countNum{
+      font-size:64px;
+      font-weight:1100;
+      letter-spacing:1px;
+    }
+    .countSub{
+      margin-top:8px;
+      color:var(--muted);
+      font-weight:900;
+    }
+  </style>
+</head>
+<body>
+
+<div class="overlay" id="overlay">
+  <div class="countBox">
+    <div class="countNum" id="countNum">3</div>
+    <div class="countSub" id="countSub">Klaar? We beginnen zo…</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <div class="row">
+      <div>
+        <h1>Cito 4M Oefentoets</h1>
+        <div class="subtitle">30 vragen • meerkeuze • 1 vraag per scherm</div>
+      </div>
+      <div class="pill" id="pillLevel">Niveau: —</div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="screenSettings" class="screen active">
+      <div class="section">
+        <div class="sectionTitle">🎛️ Instellingen</div>
+        <div class="sectionCard">
+          <div class="settingsGrid">
+            <div>
+              <label>Niveau</label>
+              <select id="level">
+                <option value="easy" selected>Makkelijk</option>
+                <option value="mid">Gemiddeld</option>
+                <option value="hard">Moeilijk</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Naam (optioneel)</label>
+              <input id="name" class="nameInput" placeholder="Bijv. Angela" />
+            </div>
+
+            <div class="toggleRow">
+              <div class="left">
+                <div class="t">Timer per vraag</div>
+                <div class="s">Zet aan om per vraag een tijdslimiet te gebruiken.</div>
+              </div>
+              <input id="timerOn" type="checkbox" />
+            </div>
+
+            <div>
+              <label>Seconden per vraag</label>
+              <input id="secondsPerQ" class="numInput" type="number" min="10" max="300" value="45" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="btnStart">▶ Start</button>
+      <div class="smalltxt">Je ziet steeds 1 vraag. Je kunt terug om antwoorden te wijzigen.</div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="screenQuiz" class="screen">
+      <div class="row" style="margin-top:8px;">
+        <button id="btnToSettings" class="secondary small">⚙️ Instellingen</button>
+        <button id="btnFinishEarly" class="danger small">Stop & uitslag</button>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progressWrap">
+        <div class="progressTop">
+          <div class="progressText" id="progressText">Vraag — / 30</div>
+          <div class="progressText" id="answeredText">Beantwoord: 0 / 30</div>
+        </div>
+        <div class="bar"><div id="barFill"></div></div>
+      </div>
+
+      <!-- Timer row -->
+      <div class="timerRow" id="timerRow" style="display:none;">
+        <div class="timerBadge" id="timerBadge">⏱️ 45s</div>
+        <div class="timeBar"><div id="timeFill"></div></div>
+      </div>
+
+      <div class="qBox">
+        <div class="qMeta">
+          <div class="qNr" id="qNr">Vraag 1</div>
+          <div class="qDomain" id="qDomain">—</div>
+        </div>
+
+        <div class="qText" id="qText">—</div>
+
+        <div class="opts" id="opts"></div>
+
+        <div class="navRow">
+          <button id="btnPrev" class="secondary">← Vorige</button>
+          <button id="btnNext">Volgende →</button>
+        </div>
+      </div>
+
+      <div id="msg" class="msg"></div>
+    </div>
+
+    <!-- END -->
+    <div id="screenEnd" class="screen">
+      <div class="bigScore" id="scoreBig">—</div>
+      <div class="progressText" style="text-align:center;font-weight:1000;color:var(--muted)" id="endTitle">—</div>
+
+      <div class="sectionCard" style="margin-top:12px;">
+        <div class="smalltxt" id="endSub"></div>
+      </div>
+
+      <div class="section" style="margin-top:14px;">
+        <div class="sectionTitle">✅ Overzicht per vraag</div>
+        <div id="review"></div>
+      </div>
+
+      <button id="btnRestart" class="secondary">🔁 Opnieuw</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(() => {
+  // ---------------------------
+  // Helpers
+  // ---------------------------
+  function q(domain, text, options, answerIndex){
+    return { domain, text, options, answerIndex };
+  }
+  function withIds(list){
+    return list.map((x,i) => ({ id:i+1, ...x }));
+  }
+  function domainLabel(d){
+    if (d === "rekenen") return "Rekenen";
+    if (d === "begrijpend_lezen") return "Begrijpend lezen";
+    return "Taal";
+  }
+  function storyQ(story, questionLine, options, answerIndex){
+    // Verhaaltje bij ELKE vraag
+    const text =
+      "Verhaal:\n" + story + "\n\n" +
+      "Vraag:\n" + questionLine;
+    return q("begrijpend_lezen", text, options, answerIndex);
+  }
+  function titleQ(story, options, answerIndex){
+    const questionLine = "Welke titel past het best bij het hele verhaal?\n(Waar gaat het verhaal vooral over?)";
+    return storyQ(story, questionLine, options, answerIndex);
+  }
+
+  // ---------------------------
+  // DATA: 3 toetsen (30 vragen)
+  // ---------------------------
+  const TESTS = {
+    easy: buildEasy(),
+    mid:  buildMid(),
+    hard: buildHard(),
+  };
+
+  function buildEasy(){
+    const qs = [];
+
+    // Rekenen (12)
+    qs.push(
+      q("rekenen","47 + 26 =",["63","73","83","93"],1),
+      q("rekenen","64 − 28 =",["34","36","38","42"],1),
+      q("rekenen","6 × 7 =",["36","40","42","48"],2),
+      q("rekenen","Welke som is 30?",["5×5","6×4","10+10","6×5"],3),
+      q("rekenen","Er zijn 24 appels. Verdeel ze eerlijk over 6 kinderen. Hoeveel appels krijgt ieder kind?",["2","3","4","6"],2),
+      q("rekenen","Kwart over negen is:",["9:15","9:30","9:45","10:15"],0),
+      // FIX: grootst is 40−5 (35)
+      q("rekenen","Welke is het grootst?",["8×4","30+2","5×6","40−5"],3),
+      q("rekenen","Welke som klopt?",["9×3=18","6×5=30","4×7=24","8×4=28"],1),
+      q("rekenen","100 − 47 =",["43","53","57","63"],1),
+      q("rekenen","Water meet je in:",["kilo","liter","meter","gram"],1),
+      q("rekenen","Een boek kost €8. Je betaalt met €10. Hoeveel wisselgeld krijg je terug?:",["€1","€2","€3","€4"],1),
+      q("rekenen","Half vijf is:",["4:00","4:15","4:30","5:30"],2),
+    );
+
+    // Begrijpend lezen (10) – 2 verhalen x 5 vragen (verhaal staat steeds erbij)
+    const s1 =
+      "Sam gaat op zaterdag naar de voetbaltraining.\n" +
+      "Hij fietst samen met zijn vriend Tim naar het veld.\n" +
+      "De training begint om tien uur.\n" +
+      "Na de training drinken ze limonade in de kantine.";
+    qs.push(
+      storyQ(s1,"Op welke dag gaat Sam trainen?",["Vrijdag","Zaterdag","Zondag","Maandag"],1),
+      storyQ(s1,"Met wie gaat Sam naar de training?",["Zijn broer","Zijn vader","Tim","Alleen"],2),
+      storyQ(s1,"Hoe gaat Sam naar het veld?",["Lopend","Met de bus","Met de fiets","Met de auto"],2),
+      storyQ(s1,"Hoe laat begint de training?",["09:00","09:30","10:00","10:30"],2),
+      storyQ(s1,"Wat doen Sam en Tim na de training?",["Naar huis","Douchen","Limonade drinken","Spelen"],2),
+    );
+
+    const s2 =
+      "In de tuin staat een grote boom.\n" +
+      "In de boom zit een vogel.\n" +
+      "Elke ochtend zingt de vogel een liedje.\n" +
+      "De kat kijkt omhoog, maar kan de vogel niet pakken.";
+    qs.push(
+      storyQ(s2,"Waar zit de vogel?",["In de tuin","Op de grond","In de boom","Op het dak"],2),
+      storyQ(s2,"Wanneer zingt de vogel?",["’s Avonds","’s Nachts","’s Middags","’s Ochtends"],3),
+      storyQ(s2,"Wat doet de kat?",["Hij slaapt","Hij zingt","Hij kijkt omhoog","Hij rent weg"],2),
+      storyQ(s2,"Waarom kan de kat de vogel niet pakken?",["De vogel vliegt weg","De kat is moe","De vogel zit te hoog","De kat is bang"],2),
+      titleQ(s2,["De kat zingt","Er is een boom in de tuin","De vogel zit veilig in de boom","De kat vangt de vogel"],2),
+    );
+
+    // Taal (8)
+    qs.push(
+      q("taal","Welk woord past? De hond ligt ___ de tafel.",["onder","lopen","groot","eten"],0),
+      q("taal","Welk woord betekent bijna hetzelfde als ‘boos’?",["blij","kwaad","moe","lief"],1),
+      q("taal","Welke zin is goed geschreven?",["ik Ga morgen naar school","Ik ga morgen naar school.","Ik ga Morgen naar school","ik ga morgen naar School"],1),
+      q("taal","Welk woord is een werkwoord?",["stoel","rood","lopen","tafel"],2),
+      q("taal","Welke zin is tegenwoordige tijd?",["Ik liep naar huis","Ik ga naar huis","Ik zal naar huis gaan","Ik ben gegaan"],1),
+      q("taal","Welk woord past? De zon schijnt en het is ____.",["nat","koud","warm","donker"],2),
+      q("taal","Welk woord is meervoud?",["boom","kind","huizen","kat"],2),
+      q("taal","Welk woord rijmt op ‘kat’?",["pet","mat","kip","zon"],1),
+    );
+
+    return withIds(qs);
+  }
+
+  function buildMid(){
+    const qs = [];
+
+    // Rekenen (12)
+    qs.push(
+      q("rekenen","58 + 37 =",["85","95","96","105"],1),
+      q("rekenen","73 − 46 =",["17","27","37","47"],1),
+      q("rekenen","8 × 6 =",["42","46","48","54"],2),
+      q("rekenen","Welke som is 45?",["9×4","5×9","7×6","10+25"],1),
+      q("rekenen","36 knikkers eerlijk over 4 kinderen. Ieder krijgt:",["8","9","10","12"],1),
+      q("rekenen","Kwart voor drie is:",["2:15","2:30","2:45","3:15"],2),
+      q("rekenen","Welke is het kleinst?",["50−18","6×5","40−9","28+6"],1),
+      q("rekenen","100 − 68 =",["22","32","38","42"],1),
+      q("rekenen","Welke maat past bij lengte van een tafel?",["liter","meter","gram","euro"],1),
+      q("rekenen","2 ijsjes van €3. Je betaalt €10. Terug:",["€2","€3","€4","€5"],2),
+      q("rekenen","Welke breuk is het grootst?",["1/2","1/4","1/3","1/6"],0),
+      q("rekenen","Film start 18:15 en duurt 1 uur. Klaar om:",["19:00","19:05","19:15","19:30"],2),
+    );
+
+    // Begrijpend lezen (10)
+    const s1 =
+      "Mila wil een hut bouwen.\n" +
+      "Ze zoekt takken in het park.\n" +
+      "Haar broer helpt mee.\n" +
+      "Als de hut klaar is, leggen ze een deken erin.\n" +
+      "Dan gaan ze even zitten.";
+    qs.push(
+      storyQ(s1,"Wat wil Mila bouwen?",["Een boot","Een hut","Een toren","Een tunnel"],1),
+      storyQ(s1,"Waar zoekt Mila takken?",["In het park","Op school","In de winkel","Bij oma"],0),
+      storyQ(s1,"Wie helpt Mila?",["Haar zus","Haar broer","Haar moeder","Niemand"],1),
+      storyQ(s1,"Wat doen ze als de hut klaar is?",["Ze rennen weg","Ze leggen een deken erin","Ze gooien takken weg","Ze gaan naar huis"],1),
+      titleQ(s1,["Mila tekent een tekening","Mila bouwt een hut","Mila gaat naar school","Mila koopt takken"],1),
+    );
+
+    const s2 =
+      "Op maandag neemt juf Noor een doos mee.\n" +
+      "In de doos zitten boeken.\n" +
+      "De klas mag een boek kiezen.\n" +
+      "De kinderen moeten het boek na een week terugbrengen.";
+    qs.push(
+      storyQ(s2,"Op welke dag neemt juf Noor de doos mee?",["Maandag","Woensdag","Vrijdag","Zaterdag"],0),
+      storyQ(s2,"Wat zit er in de doos?",["Eten","Boeken","Spelletjes","Schriften"],1),
+      storyQ(s2,"Wat mogen de kinderen doen?",["Zingen","Een boek kiezen","Naar huis gaan","Niks doen"],1),
+      storyQ(s2,"Wanneer moeten de kinderen het boek terugbrengen?",["Na een dag","Na een week","Na een maand","Na een jaar"],1),
+      titleQ(s2,["Spelen in de gymzaal","Boeken voor de klas","Een nieuwe tafel","Rekenen is leuk"],1),
+    );
+
+    // Taal (8)
+    qs.push(
+      q("taal","Wat is het tegenovergestelde van ‘hoog’?",["breed","laag","lang","hard"],1),
+      q("taal","Welke zin is een vraag?",["Ik ga naar huis.","Ga jij naar huis?","Wat een mooi boek.","Morgen is het vrijdag."],1),
+      q("taal","Welk woord is een bijvoeglijk naamwoord?",["rennen","blauw","stoel","lopen"],1),
+      q("taal","Kies het juiste woord: ‘De jongens ___ naar school.’",["loopt","lopen","liep","gelopen"],1),
+      q("taal","Welk woord past: ‘Ik ___ een boek.’",["lees","leest","lezen","gelezen"],0),
+      q("taal","Welke zin heeft hoofdletter en punt?",["mila speelt buiten","Mila speelt buiten.","Mila speelt Buiten.","mila speelt buiten."],1),
+      q("taal","Welk woord rijmt op ‘maan’?",["baan","man","min","meen"],0),
+      q("taal","Meervoud van ‘kind’ is:",["kinden","kinds","kinderen","kindjes"],2),
+    );
+
+    return withIds(qs);
+  }
+
+  function buildHard(){
+    const qs = [];
+
+    // Rekenen (12) – FIXES toegepast
+    qs.push(
+      q("rekenen","96 − 57 =",["29","39","49","59"],1),
+      q("rekenen","48 + 59 =",["97","107","117","118"],1),
+      q("rekenen","9 × 7 =",["56","63","72","81"],1),
+      q("rekenen","Welke som is 72?",["8×8","9×8","6×11","7×9"],1),
+      q("rekenen","50c + 20c + 10c =",["60c","70c","80c","90c"],2),
+      // FIX: 14:35 + 25 min = 15:00 (optie C)
+      q("rekenen","Bus 14:35. 25 min later:",["14:50","14:55","15:00","15:10"],2),
+      // FIX: grootste is 80−5 (=75) => optie C
+      q("rekenen","Welke is het grootst?",["120−47","6×11","80−5","45+29"],2),
+      q("rekenen","Vul aan: 5 × __ = 45",["7","8","9","10"],2),
+      q("rekenen","Gewicht van een appel meet je in:",["liter","gram","meter","minuut"],1),
+      q("rekenen","Spel kost €17. Je hebt €20. Over:",["€1","€2","€3","€4"],2),
+      q("rekenen","Welke breuk is het kleinst?",["1/2","1/3","1/4","1/5"],3),
+      q("rekenen","Je leest 15 bladzijden per dag. In 4 dagen lees je:",["45","50","55","60"],3),
+    );
+
+    // Begrijpend lezen (10)
+    const s1 =
+      "Noah zet zijn fiets in de schuur.\n" +
+      "Het begint te regenen.\n" +
+      "Hij pakt een jas en een paraplu.\n" +
+      "Dan loopt hij naar de winkel om brood te halen.\n" +
+      "Als hij terug is, zet hij de paraplu te drogen.";
+    qs.push(
+      storyQ(s1,"Waarom pakt Noah een paraplu?",["Omdat het regent","Omdat het warm is","Omdat hij gaat fietsen","Omdat hij gaat slapen"],0),
+      storyQ(s1,"Waar zet Noah zijn fiets?",["In de schuur","In de klas","In de winkel","In de tuin"],0),
+      storyQ(s1,"Wat gaat Noah halen?",["Melk","Brood","Snoep","Een bal"],1),
+      storyQ(s1,"Wat doet Noah als hij terug is?",["Paraplu drogen","Fiets wassen","Jas weggooien","Televisie kijken"],0),
+      titleQ(s1,["Een zonnige dag","Naar de winkel in de regen","Fietsen in het park","Een nieuw spel"],1),
+    );
+
+    const s2 =
+      "In de klas maken de kinderen een tekening.\n" +
+      "Juf zegt dat ze rustig moeten werken.\n" +
+      "Emma is snel klaar en wil praten.\n" +
+      "Juf wijst naar het bord: ‘stil werken’.\n" +
+      "Emma gaat weer zitten.";
+    qs.push(
+      storyQ(s2,"Waarom wijst juf naar het bord?",["Omdat Emma moet opruimen","Omdat Emma stil moet zijn","Omdat Emma moet rennen","Omdat Emma naar huis mag"],1),
+      storyQ(s2,"Wat maken de kinderen?",["Een som","Een tekening","Een lied","Een boek"],1),
+      storyQ(s2,"Wat wil Emma doen als ze klaar is?",["Slapen","Praten","Lezen","Eten"],1),
+      storyQ(s2,"Wat doet Emma daarna?",["Ze gaat naar huis","Ze gaat weer zitten","Ze pakt een bal","Ze gaat lachen"],1),
+      titleQ(s2,["Buiten spelen","Stil werken in de klas","Een nieuwe juf","Rekenen met Emma"],1),
+    );
+
+    // Taal (8) – “blad” vervangen (eenduidig)
+    qs.push(
+      q("taal","Welk woord past: ‘De hond is ___ dan de kat.’",["groter","groot","groots","grootst"],0),
+      q("taal","Welke zin staat in de verleden tijd?",["Ik loop naar huis","Ik liep naar huis","Ik loopte naar huis","Ik zal naar huis lopen"],1),
+      q("taal","Welke zin is goed?",["Hij hebben een bal.","Hij heeft een bal.","Hij heb een bal.","Hij hebt een bal."],1),
+      q("taal","Welk woord is een zelfstandig naamwoord?",["snel","rennen","tafel","mooi"],2),
+      q("taal","Kies het juiste woord: ‘Wij ___ in de tuin.’",["speelt","spelen","speelde","gespeeld"],1),
+      // VERBETERD: eenduidig meervoud
+      q("taal","Wat is het meervoud van ‘stoel’?",["stoelen","stoels","stoelenen","stoelers"],0),
+      q("taal","Welk woord past: ‘Ik ___ mijn jas aan.’",["doe","doet","doen","gedaan"],0),
+      q("taal","Welk woord betekent bijna hetzelfde als ‘snel’?",["vlug","zacht","stil","laag"],0),
+    );
+
+    return withIds(qs);
+  }
+
+  // ---------------------------
+  // DOM
+  // ---------------------------
+  const screenSettings = document.getElementById("screenSettings");
+  const screenQuiz = document.getElementById("screenQuiz");
+  const screenEnd = document.getElementById("screenEnd");
+
+  const overlay = document.getElementById("overlay");
+  const countNum = document.getElementById("countNum");
+  const countSub = document.getElementById("countSub");
+
+  const elLevel = document.getElementById("level");
+  const elName = document.getElementById("name");
+  const pillLevel = document.getElementById("pillLevel");
+
+  const elTimerOn = document.getElementById("timerOn");
+  const elSecondsPerQ = document.getElementById("secondsPerQ");
+
+  const btnStart = document.getElementById("btnStart");
+  const btnToSettings = document.getElementById("btnToSettings");
+  const btnFinishEarly = document.getElementById("btnFinishEarly");
+  const btnPrev = document.getElementById("btnPrev");
+  const btnNext = document.getElementById("btnNext");
+  const msgEl = document.getElementById("msg");
+
+  const progressText = document.getElementById("progressText");
+  const answeredText = document.getElementById("answeredText");
+  const barFill = document.getElementById("barFill");
+
+  const timerRow = document.getElementById("timerRow");
+  const timerBadge = document.getElementById("timerBadge");
+  const timeFill = document.getElementById("timeFill");
+
+  const qNrEl = document.getElementById("qNr");
+  const qDomainEl = document.getElementById("qDomain");
+  const qTextEl = document.getElementById("qText");
+  const optsEl = document.getElementById("opts");
+
+  const scoreBig = document.getElementById("scoreBig");
+  const endTitle = document.getElementById("endTitle");
+  const endSub = document.getElementById("endSub");
+  const reviewEl = document.getElementById("review");
+  const btnRestart = document.getElementById("btnRestart");
+
+  // ---------------------------
+  // State
+  // ---------------------------
+  const LABELS = { easy:"Makkelijk", mid:"Gemiddeld", hard:"Moeilijk" };
+  let activeLevel = "easy";
+  let questions = [];
+  let answers = new Array(30).fill(null);
+  let idx = 0;
+
+  // Timer state
+  let timerEnabled = false;
+  let secondsPerQ = 45;
+  let remaining = 0;
+  let timerId = null;
+  let questionStartedAt = null;
+
+  function showScreen(which){
+    screenSettings.classList.toggle("active", which === "settings");
+    screenQuiz.classList.toggle("active", which === "quiz");
+    screenEnd.classList.toggle("active", which === "end");
+  }
+  function setMsg(text, good=null){
+    msgEl.textContent = text || "";
+    msgEl.className = "msg " + (good === null ? "" : (good ? "good" : "bad"));
+  }
+  function updatePill(){
+    activeLevel = elLevel.value;
+    pillLevel.textContent = `Niveau: ${LABELS[activeLevel]}`;
+  }
+  function answeredCount(){
+    return answers.filter(v => v !== null).length;
+  }
+  function updateProgressUI(){
+    progressText.textContent = `Vraag ${idx+1} / 30`;
+    answeredText.textContent = `Beantwoord: ${answeredCount()} / 30`;
+    barFill.style.width = `${((idx+1)/30)*100}%`;
+  }
+
+  function clearTimer(){
+    if (timerId) clearInterval(timerId);
+    timerId = null;
+  }
+
+  function startTimerForQuestion(){
+    clearTimer();
+    if (!timerEnabled){
+      timerRow.style.display = "none";
+      return;
+    }
+
+    timerRow.style.display = "flex";
+    remaining = secondsPerQ;
+    questionStartedAt = Date.now();
+    timerBadge.textContent = `⏱️ ${remaining}s`;
+    timeFill.style.width = "100%";
+
+    timerId = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - questionStartedAt) / 1000);
+      const newRemaining = Math.max(0, secondsPerQ - elapsed);
+
+      if (newRemaining !== remaining){
+        remaining = newRemaining;
+        timerBadge.textContent = `⏱️ ${remaining}s`;
+        timeFill.style.width = `${(remaining / secondsPerQ) * 100}%`;
+      }
+
+      if (remaining <= 0){
+        clearTimer();
+        setMsg("⏰ Tijd is op. Je gaat automatisch naar de volgende vraag.", false);
+        setTimeout(() => nextStep(true), 450);
+      }
+    }, 200);
+  }
+
+  function renderQuestion(){
+    const item = questions[idx];
+    updateProgressUI();
+
+    qNrEl.textContent = `Vraag ${item.id}`;
+    qDomainEl.textContent = domainLabel(item.domain);
+    qTextEl.textContent = item.text;
+
+    optsEl.innerHTML = "";
+    const group = "optGroup";
+
+    item.options.forEach((opt, i) => {
+      const row = document.createElement("label");
+      row.className = "opt";
+      row.innerHTML = `
+        <input type="radio" name="${group}" value="${i}">
+        <div class="t">${String.fromCharCode(65+i)}. ${escapeHtml(opt)}</div>
+      `;
+      row.addEventListener("click", () => {
+        answers[idx] = i;
+        setMsg("", null);
+        updateProgressUI();
+      });
+      optsEl.appendChild(row);
+    });
+
+    // restore selection
+    const saved = answers[idx];
+    if (saved !== null){
+      const inp = optsEl.querySelector(`input[value="${saved}"]`);
+      if (inp) inp.checked = true;
+    }
+
+    btnPrev.disabled = (idx === 0);
+    btnNext.textContent = (idx === 29) ? "Afronden ✅" : "Volgende →";
+
+    startTimerForQuestion();
+  }
+
+  function countdownThen(fn){
+    overlay.classList.add("active");
+    let n = 3;
+    countNum.textContent = String(n);
+    countSub.textContent = "Klaar? We beginnen zo…";
+
+    const t = setInterval(() => {
+      n--;
+      if (n > 0){
+        countNum.textContent = String(n);
+      } else if (n === 0){
+        countNum.textContent = "GO!";
+        countSub.textContent = "Succes!";
+      } else {
+        clearInterval(t);
+        overlay.classList.remove("active");
+        fn();
+      }
+    }, 650);
+  }
+
+  function start(){
+    activeLevel = elLevel.value;
+    questions = TESTS[activeLevel];
+    answers = new Array(30).fill(null);
+    idx = 0;
+
+    timerEnabled = !!elTimerOn.checked;
+    secondsPerQ = clampInt(elSecondsPerQ.value, 10, 300, 45);
+
+    setMsg("", null);
+    updatePill();
+
+    countdownThen(() => {
+      showScreen("quiz");
+      renderQuestion();
+    });
+  }
+
+  function finish(){
+    clearTimer();
+
+    let correct = 0;
+    const total = 30;
+
+    const name = (elName.value || "").trim();
+    const who = name ? name : "—";
+
+    reviewEl.innerHTML = "";
+
+    questions.forEach((qq, i) => {
+      const your = answers[i];
+      const ok = (your === qq.answerIndex);
+      if (ok) correct++;
+
+      const yourText = (your === null)
+        ? "Niet ingevuld"
+        : `${String.fromCharCode(65+your)}. ${qq.options[your]}`;
+
+      const correctText = `${String.fromCharCode(65+qq.answerIndex)}. ${qq.options[qq.answerIndex]}`;
+
+      const item = document.createElement("div");
+      item.className = "reviewItem";
+      item.innerHTML = `
+        <div class="reviewHead">
+          <div style="font-weight:1000;">${qq.id}. ${escapeHtml(qq.text)}</div>
+          <div class="tag ${ok ? "good" : "bad"}">${ok ? "✅ Goed" : "❌ Fout"}</div>
+        </div>
+        <div class="mini">Jouw antwoord: <span class="b">${escapeHtml(yourText)}</span></div>
+        <div class="mini">Juiste antwoord: <span class="b">${escapeHtml(correctText)}</span></div>
+      `;
+      reviewEl.appendChild(item);
+    });
+
+    const pct = Math.round((correct/total)*100);
+    scoreBig.textContent = `${correct}/${total}`;
+    endTitle.textContent = `Uitslag (${LABELS[activeLevel]})`;
+    endSub.textContent =
+      `Naam: ${who}\n` +
+      `Niveau: ${LABELS[activeLevel]}\n` +
+      `Goed: ${correct}\n` +
+      `Fout: ${total - correct}\n` +
+      `Percentage: ${pct}%\n` +
+      `Timer per vraag: ${timerEnabled ? (secondsPerQ + "s") : "uit"}`;
+
+    showScreen("end");
+  }
+
+  function nextStep(auto=false){
+    if (answers[idx] === null && !auto){
+      setMsg("⚠️ Je hebt nog geen antwoord gekozen. Je mag doorgaan, maar dan telt het als fout.", false);
+    }
+
+    if (idx === 29){
+      finish();
+      return;
+    }
+
+    idx++;
+    setMsg("", null);
+    renderQuestion();
+  }
+
+  function prevStep(){
+    if (idx <= 0) return;
+    idx--;
+    setMsg("", null);
+    renderQuestion();
+  }
+
+  function clampInt(v, min, max, fallback){
+    const n = parseInt(v, 10);
+    if (Number.isNaN(n)) return fallback;
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // ---------------------------
+  // Events
+  // ---------------------------
+  elLevel.addEventListener("change", updatePill);
+  btnStart.addEventListener("click", start);
+
+  btnToSettings.addEventListener("click", () => {
+    clearTimer();
+    showScreen("settings");
+    setMsg("", null);
+  });
+
+  btnFinishEarly.addEventListener("click", finish);
+  btnPrev.addEventListener("click", prevStep);
+  btnNext.addEventListener("click", () => nextStep(false));
+
+  btnRestart.addEventListener("click", () => {
+    clearTimer();
+    showScreen("settings");
+    updatePill();
+  });
+
+  // init
+  updatePill();
+  showScreen("settings");
+})();
+</script>
+</body>
+</html>

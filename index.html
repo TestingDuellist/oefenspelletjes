@@ -48,17 +48,20 @@
 </head>
 <body>
 
+<!-- MENU -->
 <div id="screenMenu" class="screen active">
   <div class="menu">
     <h1>🎮 Kies je spel</h1>
     <p>Wat wil je vandaag oefenen?</p>
 
     <button onclick="openGame('tafel')">🧮 Tafels</button>
+    <button class="secondary" onclick="openGame('cito')">📘 Cito 4M</button>
     <button class="secondary" onclick="openGame('spelling')">✏️ Spelling</button>
     <button class="secondary" onclick="openGame('bke')">⭕❌ Boter Kaas & Eieren</button>
   </div>
 </div>
 
+<!-- TAFELS -->
 <div id="screenTafel" class="screen">
   <div class="topbar">
     <button onclick="backToMenu()">⬅ Menu</button>
@@ -67,6 +70,16 @@
   <iframe id="frameTafel" src="tafeltrainer.html"></iframe>
 </div>
 
+<!-- CITO 4M -->
+<div id="screenCito" class="screen">
+  <div class="topbar">
+    <button onclick="backToMenu()">⬅ Menu</button>
+    <strong>📘 Cito 4M</strong>
+  </div>
+  <iframe id="frameCito" src="cito4m.html"></iframe>
+</div>
+
+<!-- SPELLING -->
 <div id="screenSpelling" class="screen">
   <div class="topbar">
     <button onclick="backToMenu()">⬅ Menu</button>
@@ -75,6 +88,7 @@
   <iframe id="frameSpelling" src="spellingtrainer.html"></iframe>
 </div>
 
+<!-- BKE -->
 <div id="screenBke" class="screen">
   <div class="topbar">
     <button onclick="backToMenu()">⬅ Menu</button>
@@ -85,16 +99,16 @@
 
 <script>
   function resetFrames(){
-    const ids = ["frameTafel","frameSpelling","frameBke"];
+    const ids = ["frameTafel","frameCito","frameSpelling","frameBke"];
     for (const id of ids){
       const f = document.getElementById(id);
-      if (f) f.src = f.src; // reset zodat timers/voice stoppen
+      if (f) f.src = f.src; // reset zodat timers/spraak stoppen
     }
     if ("speechSynthesis" in window) speechSynthesis.cancel();
   }
 
   function showOnly(id){
-    ["screenMenu","screenTafel","screenSpelling","screenBke"].forEach(s=>{
+    ["screenMenu","screenTafel","screenCito","screenSpelling","screenBke"].forEach(s=>{
       document.getElementById(s).classList.remove("active");
     });
     document.getElementById(id).classList.add("active");
@@ -103,6 +117,7 @@
   function openGame(which){
     resetFrames();
     if (which === "tafel") return showOnly("screenTafel");
+    if (which === "cito") return showOnly("screenCito");
     if (which === "spelling") return showOnly("screenSpelling");
     return showOnly("screenBke");
   }
