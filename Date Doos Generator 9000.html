@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Date Doos Generator 9000</title>
+
+<style>
+/* ===== Viewport / background fix (removes the “end line”) ===== */
+html, body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow-x:hidden;
+  background:linear-gradient(135deg,#2b0a3d,#5b0f1a,#0f3d2e);
+}
+
+/* Canvassen vullen altijd de echte zichtbare hoogte */
+#bgAnim,
+#confetti{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100dvh;        /* ✅ dynamic viewport height (mobile bars safe) */
+  pointer-events:none;
+}
+
+#bgAnim{ z-index:0; }
+#confetti{ z-index:9999; }
+
+/* ===== UI ===== */
+.wrap{
+  max-width:480px;
+  margin:80px auto;
+  padding:16px;
+  position:relative;
+  z-index:2;
+  min-height:100dvh;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  box-sizing:border-box;
+}
+
+.card{
+  width:100%;
+  background:rgba(255,255,255,0.96);
+  border-radius:18px;
+  padding:22px;
+  backdrop-filter: blur(6px);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.4),
+    0 20px 60px rgba(0,0,0,.35);
+}
+
+h1,h2{ margin-top:0; }
+p{ font-weight:700; color:#555; line-height:1.5; }
+label{ display:block; margin-top:18px; font-weight:900; }
+
+input{
+  width:100%;
+  padding:14px;
+  font-size:16px; /* voorkomt iOS zoom */
+  border-radius:14px;
+  border:2px solid #e5e7f2;
+  margin-top:8px;
+  box-sizing:border-box;
+}
+
+button{
+  width:100%;
+  margin-top:16px;
+  padding:14px;
+  font-size:16px;
+  font-weight:900;
+  border-radius:16px;
+  border:none;
+  background:linear-gradient(135deg,#e11d48,#be123c);
+  color:white;
+  cursor:pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.secondary{ background:#111827; }
+
+.msg{ margin-top:10px; font-weight:900; }
+.good{ color:#0a8a3a; }
+.bad{ color:#c22a2a; }
+.hide{ display:none; }
+
+.pill{
+  display:inline-block;
+  font-weight:900;
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#ffe4e6,#fecdd3);
+  color:#9f1239;
+  margin-bottom:10px;
+}
+
+.rewardBox{
+  background:#f8fafc;
+  border:2px dashed #e5e7f2;
+  border-radius:16px;
+  padding:14px;
+  margin-top:12px;
+}
+
+/* ===== Mobile tweaks ===== */
+@media (max-width:520px){
+  .wrap{
+    margin:18px auto;
+    padding:12px;
+    max-width:100%;
+  }
+  .card{ padding:18px; }
+  h1{ font-size:22px; }
+  h2{ font-size:18px; }
+  p{ font-size:15px; line-height:1.45; }
+}
+</style>
+</head>
+
+<body>
+<canvas id="bgAnim"></canvas>
+<canvas id="confetti"></canvas>
+
+<!-- 🎵 Muziek: zet christmas.mp3 in dezelfde map als dit HTML bestand -->
+<audio id="bgMusic" preload="auto" loop>
+  <source src="christmas.mp3" type="audio/mpeg">
+</audio>
+
+<div class="wrap">
+  <div class="card">
+
+    <!-- START -->
+    <div id="start">
+      <h1>🎁 Date Doos Generator 9000</h1>
+
+      <p>
+        Je hebt de <strong>speciale Date Doos Generator 9000</strong> ontvangen.
+        Dit is geen gewone doos, maar een systeem dat willekeurig een date voor ons bepaalt.
+      </p>
+
+      <p>
+        Elke maand, op de <strong>24ste</strong>, mag je één keer een nummer uit de doos graaien.
+        Dat nummer gebruik je hier om de date te ontgrendelen.
+      </p>
+
+      <label>Vul je nummer in</label>
+      <input id="code" placeholder="Bijv. 888" inputmode="numeric">
+      <button onclick="startGame()">Start →</button>
+      <div id="startMsg" class="msg"></div>
+
+      <p style="font-size:13px;font-weight:800;color:#6b7280;">
+        Alleen nummers uit de doos werken.
+      </p>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="quiz" class="hide">
+      <div class="pill">🎄💛 Kerstquiz</div>
+      <h2>Beantwoord de vragen</h2>
+
+      <p><strong id="qNo"></strong></p>
+      <p id="qText"></p>
+
+      <label>Antwoord</label>
+      <input id="ans" placeholder="Typ je antwoord">
+      <button id="nextBtn" onclick="checkAnswer()">Volgende →</button>
+      <div id="msg" class="msg"></div>
+
+      <button class="secondary" onclick="resetAll()">Andere code invoeren</button>
+    </div>
+
+    <!-- REWARD -->
+    <div id="reward" class="hide">
+      <div class="pill">🎉 Ontgrendeld</div>
+      <h2>Yes! 🎉</h2>
+
+      <div class="rewardBox">
+        <p style="font-weight:900;">
+          🎉 <strong>Gefeliciteerd!</strong><br>
+          Het is gelukt 🎉<br>
+          Je hebt zojuist een <strong>golfdate</strong> ontgrendeld.<br>
+          Tijd om samen het gras op te gaan, te lachen en plezier te maken ⛳💛
+        </p>
+      </div>
+
+      <button onclick="resetAll()">Terug naar start</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* 🔐 Geldige codes */
+const VALID_CODES = [
+  "25021990","31032018","25061991","19102022","02052020",
+  "240012","240025","240031","240019","20182024",
+  "19902024","20202412"
+];
+
+/* ❓ Vragen (strikte structuur)
+   1) 2 open
+   2) 3 raadsels (1x typen -> automatisch antwoord)
+   3) 3 check (moet kloppen)
+*/
+const QUESTIONS = [
+  // ❤️ OPEN VRAGEN
+  {
+    type: "open",
+    q: "Wat maakt jou blij?",
+    positive: "Wat lief 💛."
+  },
+  {
+    type: "open",
+    q: "Wat vind je zo leuk aan kerst?",
+    positive: "Correct 🎄✨"
+  },
+
+  // 😂 RAADSELS
+
+  {
+    type: "riddle",
+    q: "Waarom zijn vissen zo slim?",
+    answerText: "Omdat ze altijd in scholen zwemmen 🐟"
+  },
+  {
+    type: "riddle",
+    q: "Een moeder heeft 6 appels en 5 kinderen. Hoe kan ze eerlijk alle appels verdelen?",
+    answerText: "Appelmoes maken! 🍎😄"
+  },
+  {
+    type: "riddle",
+    q: "Wat is wit, koud en komt vaak uit de lucht met kerst?",
+    answerText: "❄️ Sneeuw!"
+  },
+
+  // ✅ CHECKVRAGEN
+  {
+    type: "check",
+    q: "Welke sportschool was de eerste waar we samen heen gingen om te sporten?",
+    answers: ["sportschool","gym","ad den otter","basic-fit","fit for free","fitforfree"]
+  },
+  {
+    type: "check",
+    q: "Wat probeer je zo snel mogelijk in een gat te krijgen?",
+    answers: ["bal","de bal","golfbal","golf bal"]
+  },
+  {
+    type: "check",
+    q: "Ik ga over gras, soms raak je me verkeerd, maar samen is het leuker. Wat doen we?",
+    answers: ["golfen","golf","samen golfen"]
+  }
+];
+
+let qIndex = 0;
+
+/* 🎵 Music */
+const music = document.getElementById("bgMusic");
+music.volume = 0.35; // zacht
+
+function norm(s){
+  return String(s||"").trim().toLowerCase().replace(/\s+/g," ");
+}
+function ok(val,list){
+  return list.some(a => norm(a) === norm(val));
+}
+function setMsg(el,text,good){
+  el.textContent = text;
+  el.className = "msg " + (good ? "good" : "bad");
+}
+
+function startGame(){
+  // ✅ Start muziek na user click (browser policy-proof)
+  if (music && music.paused){
+    music.play().catch(()=>{});
+  }
+
+  const v = code.value.trim();
+  if (!VALID_CODES.includes(v)){
+    return setMsg(startMsg,"❌ Dit nummer hoort niet bij de doos.",false);
+  }
+  qIndex = 0;
+  start.classList.add("hide");
+  quiz.classList.remove("hide");
+  reward.classList.add("hide");
+  ans.value="";
+  msg.textContent="";
+  renderQuestion();
+  ans.focus();
+}
+
+function renderQuestion(){
+  const cur = QUESTIONS[qIndex];
+  qNo.textContent = `Vraag ${qIndex+1} van ${QUESTIONS.length}`;
+  qText.textContent = cur.q;
+  nextBtn.textContent = (qIndex===QUESTIONS.length-1) ? "Ontgrendel →" : "Volgende →";
+}
+
+function checkAnswer(){
+  const cur = QUESTIONS[qIndex];
+  const value = ans.value.trim();
+
+  if (!value){
+    return setMsg(msg,"Typ gerust iets in 🙂",false);
+  }
+
+  // ❤️ OPEN: elk antwoord is goed
+  if (cur.type === "open"){
+    setMsg(msg, cur.positive, true);
+    return nextStep();
+  }
+
+  // 😂 RAADSEL: 1x typen, daarna antwoord tonen
+  if (cur.type === "riddle"){
+    setMsg(msg, cur.answerText + " 😊", true);
+    return nextStep();
+  }
+
+  // ✅ CHECK: moet kloppen, anders opnieuw proberen
+  if (cur.type === "check"){
+    if (!ok(value, cur.answers)){
+      return setMsg(msg,"Bijna! Probeer het nog eens 💛",false);
+    }
+    setMsg(msg,"✅ Goed!",true);
+    return nextStep();
+  }
+}
+
+/* ✅ Pauze: langer bij raadsels */
+function nextStep(){
+  const cur = QUESTIONS[qIndex];
+  const delay = (cur.type === "riddle") ? 4500 : 700; // ⏸️ 2s voor raadsels, 0.7s voor de rest
+
+  setTimeout(()=>{
+    qIndex++;
+    if (qIndex >= QUESTIONS.length){
+      quiz.classList.add("hide");
+      reward.classList.remove("hide");
+      startConfetti();
+    } else {
+      ans.value="";
+      msg.textContent="";
+      renderQuestion();
+      ans.focus();
+    }
+  }, delay);
+}
+
+function resetAll(){
+  qIndex=0;
+  quiz.classList.add("hide");
+  reward.classList.add("hide");
+  start.classList.remove("hide");
+  code.value="";
+  ans.value="";
+  startMsg.textContent="";
+  msg.textContent="";
+
+  // Optioneel: stop muziek als je teruggaat naar start
+  // music.pause(); music.currentTime = 0;
+}
+
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter")return;
+  if(!start.classList.contains("hide")) startGame();
+  else if(!quiz.classList.contains("hide")) checkAnswer();
+});
+
+/* ===== Canvas sizing (fixes the bottom “edge/line”) ===== */
+const bg = document.getElementById("bgAnim");
+const conf = document.getElementById("confetti");
+const bctx = bg.getContext("2d");
+const cctx = conf.getContext("2d");
+
+function setCanvasSize(c){
+  const dpr = window.devicePixelRatio || 1;
+  const rect = c.getBoundingClientRect();
+  c.width  = Math.max(1, Math.floor(rect.width  * dpr));
+  c.height = Math.max(1, Math.floor(rect.height * dpr));
+  const ctx = c.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
+}
+
+function resizeAll(){
+  setCanvasSize(bg);
+  setCanvasSize(conf);
+}
+window.addEventListener("resize", resizeAll);
+window.addEventListener("orientationchange", resizeAll);
+resizeAll();
+
+/* 🎄💘 Background animation */
+const flakes = [];
+const icons = ["❄️","💖","✨","🎄"];
+
+function initBg(){
+  flakes.length = 0;
+  const count = (innerWidth <= 520) ? 42 : 60; // iets lichter op mobiel
+  for(let i=0;i<count;i++){
+    flakes.push({
+      x: Math.random()*innerWidth,
+      y: Math.random()*innerHeight,
+      s: Math.random()*14+10,
+      v: Math.random()*0.6+0.3,
+      c: icons[Math.floor(Math.random()*icons.length)]
+    });
+  }
+}
+initBg();
+
+function drawBg(){
+  bctx.clearRect(0,0,innerWidth,innerHeight);
+  bctx.globalAlpha = 0.55;
+
+  for(const f of flakes){
+    bctx.font = `${f.s}px serif`;
+    bctx.fillText(f.c, f.x, f.y);
+
+    f.y += f.v;
+    if(f.y > innerHeight + 20){
+      f.y = -20;
+      f.x = Math.random()*innerWidth;
+    }
+  }
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+/* 🎊 Confetti (on unlock) */
+let pieces = [];
+function rand(min,max){ return Math.random()*(max-min)+min; }
+
+function startConfetti(){
+  pieces=[];
+  for(let i=0;i<180;i++){
+    pieces.push({
+      x: rand(0, innerWidth),
+      y: rand(-120,-10),
+      r: rand(2,5),
+      vy: rand(2,5),
+      vx: rand(-1.5,1.5),
+      c: `hsl(${rand(0,360)},80%,60%)`
+    });
+  }
+  requestAnimationFrame(drawConfetti);
+}
+
+function drawConfetti(){
+  cctx.clearRect(0,0,innerWidth,innerHeight);
+  for(const p of pieces){
+    p.x += p.vx; p.y += p.vy;
+    cctx.fillStyle = p.c;
+    cctx.beginPath();
+    cctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    cctx.fill();
+  }
+  pieces = pieces.filter(p=>p.y < innerHeight + 20);
+  if(pieces.length) requestAnimationFrame(drawConfetti);
+}
+
+/* 📱 keep input visible when keyboard opens */
+["code","ans"].forEach(id=>{
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener("focus", ()=>{
+    setTimeout(()=> el.scrollIntoView({behavior:"smooth", block:"center"}), 250);
+  });
+});
+</script>
+
+</body>
+</html>

@@ -84,6 +84,7 @@
     <button onclick="openGame('tafel')">🧮 Tafels</button>
     <button class="secondary" onclick="openGame('cito')">📘 Cito groep 4M</button>
     <button class="secondary" onclick="openGame('spelling')">✏️ Spelling</button>
+    <button class="secondary" onclick="openGame('date')">💌 Date Doos Generator 9000</button>
     <button class="secondary" onclick="openGame('bke')">⭕❌ Boter Kaas & Eieren</button>
   </div>
 </div>
@@ -128,6 +129,18 @@
   </div>
 </div>
 
+
+<!-- DATE DOOS GENERATOR 9000 -->
+<div id="screenDate" class="screen">
+  <div class="topbar">
+    <button onclick="backToMenu()">⬅ Menu</button>
+    <strong>💌 Date Doos Generator 9000</strong>
+  </div>
+  <div class="frameWrap">
+    <iframe id="frameDate" src="Date%20Doos%20Generator%209000.html"></iframe>
+  </div>
+</div>
+
 <!-- BKE -->
 <div id="screenBke" class="screen">
   <div class="topbar">
@@ -140,8 +153,8 @@
 </div>
 
 <script>
-  const SCREENS = ["screenMenu","screenTafel","screenCito","screenSpelling","screenBke"];
-  const FRAMES  = ["frameTafel","frameCito","frameSpelling","frameBke"];
+  const SCREENS = ["screenMenu","screenTafel","screenCito","screenSpelling","screenDate","screenBke"];
+  const FRAMES  = ["frameTafel","frameCito","frameSpelling","frameDate","frameBke"];
 
   function resetFrames(){
     for (const id of FRAMES){
@@ -164,6 +177,7 @@
     if (which === "tafel")   return showOnly("screenTafel");
     if (which === "cito")    return showOnly("screenCito");
     if (which === "spelling")return showOnly("screenSpelling");
+    if (which === "date")    return showOnly("screenDate");
     return showOnly("screenBke");
   }
 
