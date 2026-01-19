@@ -257,7 +257,7 @@
             <div>
               <label>Tafel</label>
               <select id="table">
-                <option value="all">Alles (1-10)</option>
+                <option value="all">Alles (1-12)</option>
                 <option value="1">Tafel van 1</option>
                 <option value="2">Tafel van 2</option>
                 <option value="3">Tafel van 3</option>
@@ -268,6 +268,8 @@
                 <option value="8">Tafel van 8</option>
                 <option value="9">Tafel van 9</option>
                 <option value="10">Tafel van 10</option>
+                <option value="11">Tafel van 11</option>
+                <option value="12">Tafel van 12</option>
               </select>
             </div>
 
@@ -699,21 +701,32 @@
   }
 
   function pickNewSum(){
-    const maxB = parseInt(elRange.value, 10);
-    const table = elTable.value;
+  const maxB = parseInt(elRange.value, 10);
+  const table = elTable.value;
 
-    a = (table === "all") ? randInt(1,10) : parseInt(table,10);
-    b = randInt(1, maxB);
-    correctAnswer = a*b;
-
-    sumEl.textContent = `${a} × ${b} = ?`;
-    answerEl.value = "";
-    answerEl.focus();
-    showMsg("", true);
-
-    startMs = Date.now();
-    startTimer();
+  // 👉 tafel staat altijd links (zoals op je voorbeeldkaart)
+  if (table === "all") {
+    a = randInt(1, 12);   // random tafel
+  } else {
+    a = parseInt(table, 10); // gekozen tafel
   }
+
+  // 👉 rechterkant is altijd de vermenigvuldiger
+  b = randInt(1, maxB);
+
+  correctAnswer = a * b;
+
+  // 👉 altijd: tafel × getal
+  sumEl.textContent = `${a} × ${b} = ?`;
+
+  answerEl.value = "";
+  answerEl.focus();
+  showMsg("", true);
+
+  startMs = Date.now();
+  startTimer();
+}
+
 
   function animateTurnSwitch(){
     p1Card.classList.remove("turnAnim");

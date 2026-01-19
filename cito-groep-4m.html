@@ -199,7 +199,7 @@
 <div class="overlay" id="overlay">
   <div class="countBox">
     <div class="countNum" id="countNum">3</div>
-    <div class="countSub" id="countSub">Klaar? We beginnen zo…</div>
+    <div class="countSub" id="countSub">Klaar? We beginnen zo...</div>
   </div>
 </div>
 
@@ -208,15 +208,15 @@
     <div class="row">
       <div>
         <h1>Cito 4M Oefentoets</h1>
-        <div class="subtitle">30 vragen • meerkeuze • 1 vraag per scherm</div>
+        <div class="subtitle"><span id="subtitleCount">30</span> vragen - meerkeuze - 1 vraag per scherm</div>
       </div>
-      <div class="pill" id="pillLevel">Niveau: —</div>
+      <div class="pill" id="pillLevel">Niveau: -</div>
     </div>
 
     <!-- SETTINGS -->
     <div id="screenSettings" class="screen active">
       <div class="section">
-        <div class="sectionTitle">🎛️ Instellingen</div>
+        <div class="sectionTitle">Instellingen</div>
         <div class="sectionCard">
           <div class="settingsGrid">
             <div>
@@ -225,6 +225,7 @@
                 <option value="easy" selected>Makkelijk</option>
                 <option value="mid">Gemiddeld</option>
                 <option value="hard">Moeilijk</option>
+                <option value="e4">Toets E4</option>
               </select>
             </div>
 
@@ -249,45 +250,45 @@
         </div>
       </div>
 
-      <button id="btnStart">▶ Start</button>
+      <button id="btnStart">Start</button>
       <div class="smalltxt">Je ziet steeds 1 vraag. Je kunt terug om antwoorden te wijzigen.</div>
     </div>
 
     <!-- QUIZ -->
     <div id="screenQuiz" class="screen">
       <div class="row" style="margin-top:8px;">
-        <button id="btnToSettings" class="secondary small">⚙️ Instellingen</button>
+        <button id="btnToSettings" class="secondary small">Instellingen</button>
         <button id="btnFinishEarly" class="danger small">Stop & uitslag</button>
       </div>
 
       <!-- Progress bar -->
       <div class="progressWrap">
         <div class="progressTop">
-          <div class="progressText" id="progressText">Vraag — / 30</div>
-          <div class="progressText" id="answeredText">Beantwoord: 0 / 30</div>
+          <div class="progressText" id="progressText">Vraag - / -</div>
+          <div class="progressText" id="answeredText">Beantwoord: 0 / -</div>
         </div>
         <div class="bar"><div id="barFill"></div></div>
       </div>
 
       <!-- Timer row -->
       <div class="timerRow" id="timerRow" style="display:none;">
-        <div class="timerBadge" id="timerBadge">⏱️ 45s</div>
+        <div class="timerBadge" id="timerBadge">Tijd: 45s</div>
         <div class="timeBar"><div id="timeFill"></div></div>
       </div>
 
       <div class="qBox">
         <div class="qMeta">
           <div class="qNr" id="qNr">Vraag 1</div>
-          <div class="qDomain" id="qDomain">—</div>
+          <div class="qDomain" id="qDomain">-</div>
         </div>
 
-        <div class="qText" id="qText">—</div>
+        <div class="qText" id="qText">-</div>
 
         <div class="opts" id="opts"></div>
 
         <div class="navRow">
-          <button id="btnPrev" class="secondary">← Vorige</button>
-          <button id="btnNext">Volgende →</button>
+          <button id="btnPrev" class="secondary">Vorige</button>
+          <button id="btnNext">Volgende</button>
         </div>
       </div>
 
@@ -296,19 +297,19 @@
 
     <!-- END -->
     <div id="screenEnd" class="screen">
-      <div class="bigScore" id="scoreBig">—</div>
-      <div class="progressText" style="text-align:center;font-weight:1000;color:var(--muted)" id="endTitle">—</div>
+      <div class="bigScore" id="scoreBig">-</div>
+      <div class="progressText" style="text-align:center;font-weight:1000;color:var(--muted)" id="endTitle">-</div>
 
       <div class="sectionCard" style="margin-top:12px;">
         <div class="smalltxt" id="endSub"></div>
       </div>
 
       <div class="section" style="margin-top:14px;">
-        <div class="sectionTitle">✅ Overzicht per vraag</div>
+        <div class="sectionTitle">Overzicht per vraag</div>
         <div id="review"></div>
       </div>
 
-      <button id="btnRestart" class="secondary">🔁 Opnieuw</button>
+      <button id="btnRestart" class="secondary">Opnieuw</button>
     </div>
 
   </div>
@@ -341,14 +342,22 @@
     const questionLine = "Welke titel past het best bij het hele verhaal?\n(Waar gaat het verhaal vooral over?)";
     return storyQ(story, questionLine, options, answerIndex);
   }
+  function playWinnerSound(){
+    if (!("speechSynthesis" in window)) return;
+    const utter = new SpeechSynthesisUtterance("You are world champion");
+    utter.lang = "en-US";
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  }
 
   // ---------------------------
-  // DATA: 3 toetsen (30 vragen)
+  // DATA: 4 toetsen (variabele lengte)
   // ---------------------------
   const TESTS = {
     easy: buildEasy(),
     mid:  buildMid(),
     hard: buildHard(),
+    e4: buildE4(),
   };
 
   function buildEasy(){
@@ -357,21 +366,21 @@
     // Rekenen (12)
     qs.push(
       q("rekenen","47 + 26 =",["63","73","83","93"],1),
-      q("rekenen","64 − 28 =",["34","36","38","42"],1),
-      q("rekenen","6 × 7 =",["36","40","42","48"],2),
-      q("rekenen","Welke som is 30?",["5×5","6×4","10+10","6×5"],3),
+      q("rekenen","64 - 28 =",["34","36","38","42"],1),
+      q("rekenen","6 x 7 =",["36","40","42","48"],2),
+      q("rekenen","Welke som is 30?",["5x5","6x4","10+10","6x5"],3),
       q("rekenen","Er zijn 24 appels. Verdeel ze eerlijk over 6 kinderen. Hoeveel appels krijgt ieder kind?",["2","3","4","6"],2),
       q("rekenen","Kwart over negen is:",["9:15","9:30","9:45","10:15"],0),
-      // FIX: grootst is 40−5 (35)
-      q("rekenen","Welke is het grootst?",["8×4","30+2","5×6","40−5"],3),
-      q("rekenen","Welke som klopt?",["9×3=18","6×5=30","4×7=24","8×4=28"],1),
-      q("rekenen","100 − 47 =",["43","53","57","63"],1),
+      // FIX: grootst is 40-5 (35)
+      q("rekenen","Welke is het grootst?",["8x4","30+2","5x6","40-5"],3),
+      q("rekenen","Welke som klopt?",["9x3=18","6x5=30","4x7=24","8x4=28"],1),
+      q("rekenen","100 - 47 =",["43","53","57","63"],1),
       q("rekenen","Water meet je in:",["kilo","liter","meter","gram"],1),
-      q("rekenen","Een boek kost €8. Je betaalt met €10. Hoeveel wisselgeld krijg je terug?:",["€1","€2","€3","€4"],1),
+      q("rekenen","Een boek kost EUR 8. Je betaalt met EUR 10. Hoeveel wisselgeld krijg je terug?",["EUR 1","EUR 2","EUR 3","EUR 4"],1),
       q("rekenen","Half vijf is:",["4:00","4:15","4:30","5:30"],2),
     );
 
-    // Begrijpend lezen (10) – 2 verhalen x 5 vragen (verhaal staat steeds erbij)
+    // Begrijpend lezen (10) - 2 verhalen x 5 vragen (verhaal staat steeds erbij)
     const s1 =
       "Sam gaat op zaterdag naar de voetbaltraining.\n" +
       "Hij fietst samen met zijn vriend Tim naar het veld.\n" +
@@ -392,7 +401,7 @@
       "De kat kijkt omhoog, maar kan de vogel niet pakken.";
     qs.push(
       storyQ(s2,"Waar zit de vogel?",["In de tuin","Op de grond","In de boom","Op het dak"],2),
-      storyQ(s2,"Wanneer zingt de vogel?",["’s Avonds","’s Nachts","’s Middags","’s Ochtends"],3),
+      storyQ(s2,"Wanneer zingt de vogel?",["'s Avonds","'s Nachts","'s Middags","'s Ochtends"],3),
       storyQ(s2,"Wat doet de kat?",["Hij slaapt","Hij zingt","Hij kijkt omhoog","Hij rent weg"],2),
       storyQ(s2,"Waarom kan de kat de vogel niet pakken?",["De vogel vliegt weg","De kat is moe","De vogel zit te hoog","De kat is bang"],2),
       titleQ(s2,["De kat zingt","Er is een boom in de tuin","De vogel zit veilig in de boom","De kat vangt de vogel"],2),
@@ -401,13 +410,13 @@
     // Taal (8)
     qs.push(
       q("taal","Welk woord past? De hond ligt ___ de tafel.",["onder","lopen","groot","eten"],0),
-      q("taal","Welk woord betekent bijna hetzelfde als ‘boos’?",["blij","kwaad","moe","lief"],1),
+      q("taal","Welk woord betekent bijna hetzelfde als 'boos'?",["blij","kwaad","moe","lief"],1),
       q("taal","Welke zin is goed geschreven?",["ik Ga morgen naar school","Ik ga morgen naar school.","Ik ga Morgen naar school","ik ga morgen naar School"],1),
       q("taal","Welk woord is een werkwoord?",["stoel","rood","lopen","tafel"],2),
       q("taal","Welke zin is tegenwoordige tijd?",["Ik liep naar huis","Ik ga naar huis","Ik zal naar huis gaan","Ik ben gegaan"],1),
       q("taal","Welk woord past? De zon schijnt en het is ____.",["nat","koud","warm","donker"],2),
       q("taal","Welk woord is meervoud?",["boom","kind","huizen","kat"],2),
-      q("taal","Welk woord rijmt op ‘kat’?",["pet","mat","kip","zon"],1),
+      q("taal","Welk woord rijmt op 'kat'?",["pet","mat","kip","zon"],1),
     );
 
     return withIds(qs);
@@ -419,15 +428,15 @@
     // Rekenen (12)
     qs.push(
       q("rekenen","58 + 37 =",["85","95","96","105"],1),
-      q("rekenen","73 − 46 =",["17","27","37","47"],1),
-      q("rekenen","8 × 6 =",["42","46","48","54"],2),
-      q("rekenen","Welke som is 45?",["9×4","5×9","7×6","10+25"],1),
+      q("rekenen","73 - 46 =",["17","27","37","47"],1),
+      q("rekenen","8 x 6 =",["42","46","48","54"],2),
+      q("rekenen","Welke som is 45?",["9x4","5x9","7x6","10+25"],1),
       q("rekenen","36 knikkers eerlijk over 4 kinderen. Ieder krijgt:",["8","9","10","12"],1),
       q("rekenen","Kwart voor drie is:",["2:15","2:30","2:45","3:15"],2),
-      q("rekenen","Welke is het kleinst?",["50−18","6×5","40−9","28+6"],1),
-      q("rekenen","100 − 68 =",["22","32","38","42"],1),
+      q("rekenen","Welke is het kleinst?",["50-18","6x5","40-9","28+6"],1),
+      q("rekenen","100 - 68 =",["22","32","38","42"],1),
       q("rekenen","Welke maat past bij lengte van een tafel?",["liter","meter","gram","euro"],1),
-      q("rekenen","2 ijsjes van €3. Je betaalt €10. Terug:",["€2","€3","€4","€5"],2),
+      q("rekenen","2 ijsjes van EUR 3. Je betaalt EUR 10. Terug:",["EUR 2","EUR 3","EUR 4","EUR 5"],2),
       q("rekenen","Welke breuk is het grootst?",["1/2","1/4","1/3","1/6"],0),
       q("rekenen","Film start 18:15 en duurt 1 uur. Klaar om:",["19:00","19:05","19:15","19:30"],2),
     );
@@ -462,14 +471,14 @@
 
     // Taal (8)
     qs.push(
-      q("taal","Wat is het tegenovergestelde van ‘hoog’?",["breed","laag","lang","hard"],1),
+      q("taal","Wat is het tegenovergestelde van 'hoog'?",["breed","laag","lang","hard"],1),
       q("taal","Welke zin is een vraag?",["Ik ga naar huis.","Ga jij naar huis?","Wat een mooi boek.","Morgen is het vrijdag."],1),
       q("taal","Welk woord is een bijvoeglijk naamwoord?",["rennen","blauw","stoel","lopen"],1),
-      q("taal","Kies het juiste woord: ‘De jongens ___ naar school.’",["loopt","lopen","liep","gelopen"],1),
-      q("taal","Welk woord past: ‘Ik ___ een boek.’",["lees","leest","lezen","gelezen"],0),
+      q("taal","Kies het juiste woord: 'De jongens ___ naar school.'",["loopt","lopen","liep","gelopen"],1),
+      q("taal","Welk woord past: 'Ik ___ een boek.'",["lees","leest","lezen","gelezen"],0),
       q("taal","Welke zin heeft hoofdletter en punt?",["mila speelt buiten","Mila speelt buiten.","Mila speelt Buiten.","mila speelt buiten."],1),
-      q("taal","Welk woord rijmt op ‘maan’?",["baan","man","min","meen"],0),
-      q("taal","Meervoud van ‘kind’ is:",["kinden","kinds","kinderen","kindjes"],2),
+      q("taal","Welk woord rijmt op 'maan'?",["baan","man","min","meen"],0),
+      q("taal","Meervoud van 'kind' is:",["kinden","kinds","kinderen","kindjes"],2),
     );
 
     return withIds(qs);
@@ -478,20 +487,20 @@
   function buildHard(){
     const qs = [];
 
-    // Rekenen (12) – FIXES toegepast
+    // Rekenen (12) - FIXES toegepast
     qs.push(
-      q("rekenen","96 − 57 =",["29","39","49","59"],1),
+      q("rekenen","96 - 57 =",["29","39","49","59"],1),
       q("rekenen","48 + 59 =",["97","107","117","118"],1),
-      q("rekenen","9 × 7 =",["56","63","72","81"],1),
-      q("rekenen","Welke som is 72?",["8×8","9×8","6×11","7×9"],1),
+      q("rekenen","9 x 7 =",["56","63","72","81"],1),
+      q("rekenen","Welke som is 72?",["8x8","9x8","6x11","7x9"],1),
       q("rekenen","50c + 20c + 10c =",["60c","70c","80c","90c"],2),
       // FIX: 14:35 + 25 min = 15:00 (optie C)
       q("rekenen","Bus 14:35. 25 min later:",["14:50","14:55","15:00","15:10"],2),
-      // FIX: grootste is 80−5 (=75) => optie C
-      q("rekenen","Welke is het grootst?",["120−47","6×11","80−5","45+29"],2),
-      q("rekenen","Vul aan: 5 × __ = 45",["7","8","9","10"],2),
+      // FIX: grootste is 80-5 (=75) => optie C
+      q("rekenen","Welke is het grootst?",["120-47","6x11","80-5","45+29"],2),
+      q("rekenen","Vul aan: 5 x __ = 45",["7","8","9","10"],2),
       q("rekenen","Gewicht van een appel meet je in:",["liter","gram","meter","minuut"],1),
-      q("rekenen","Spel kost €17. Je hebt €20. Over:",["€1","€2","€3","€4"],2),
+      q("rekenen","Spel kost EUR 17. Je hebt EUR 20. Over:",["EUR 1","EUR 2","EUR 3","EUR 4"],2),
       q("rekenen","Welke breuk is het kleinst?",["1/2","1/3","1/4","1/5"],3),
       q("rekenen","Je leest 15 bladzijden per dag. In 4 dagen lees je:",["45","50","55","60"],3),
     );
@@ -515,7 +524,7 @@
       "In de klas maken de kinderen een tekening.\n" +
       "Juf zegt dat ze rustig moeten werken.\n" +
       "Emma is snel klaar en wil praten.\n" +
-      "Juf wijst naar het bord: ‘stil werken’.\n" +
+      "Juf wijst naar het bord: 'stil werken'.\n" +
       "Emma gaat weer zitten.";
     qs.push(
       storyQ(s2,"Waarom wijst juf naar het bord?",["Omdat Emma moet opruimen","Omdat Emma stil moet zijn","Omdat Emma moet rennen","Omdat Emma naar huis mag"],1),
@@ -525,21 +534,73 @@
       titleQ(s2,["Buiten spelen","Stil werken in de klas","Een nieuwe juf","Rekenen met Emma"],1),
     );
 
-    // Taal (8) – “blad” vervangen (eenduidig)
+    // Taal (8) - "blad" vervangen (eenduidig)
     qs.push(
-      q("taal","Welk woord past: ‘De hond is ___ dan de kat.’",["groter","groot","groots","grootst"],0),
+      q("taal","Welk woord past: 'De hond is ___ dan de kat.'",["groter","groot","groots","grootst"],0),
       q("taal","Welke zin staat in de verleden tijd?",["Ik loop naar huis","Ik liep naar huis","Ik loopte naar huis","Ik zal naar huis lopen"],1),
       q("taal","Welke zin is goed?",["Hij hebben een bal.","Hij heeft een bal.","Hij heb een bal.","Hij hebt een bal."],1),
       q("taal","Welk woord is een zelfstandig naamwoord?",["snel","rennen","tafel","mooi"],2),
-      q("taal","Kies het juiste woord: ‘Wij ___ in de tuin.’",["speelt","spelen","speelde","gespeeld"],1),
+      q("taal","Kies het juiste woord: 'Wij ___ in de tuin.'",["speelt","spelen","speelde","gespeeld"],1),
       // VERBETERD: eenduidig meervoud
-      q("taal","Wat is het meervoud van ‘stoel’?",["stoelen","stoels","stoelenen","stoelers"],0),
-      q("taal","Welk woord past: ‘Ik ___ mijn jas aan.’",["doe","doet","doen","gedaan"],0),
-      q("taal","Welk woord betekent bijna hetzelfde als ‘snel’?",["vlug","zacht","stil","laag"],0),
+      q("taal","Wat is het meervoud van 'stoel'?",["stoelen","stoels","stoelenen","stoelers"],0),
+      q("taal","Welk woord past: 'Ik ___ mijn jas aan.'",["doe","doet","doen","gedaan"],0),
+      q("taal","Welk woord betekent bijna hetzelfde als 'snel'?",["vlug","zacht","stil","laag"],0),
     );
 
     return withIds(qs);
   }
+
+      function buildE4(){
+    const qs = [];
+
+    // Begrijpend lezen (5)
+    const s1 =
+      "Sam en Noor spelen buiten.\n" +
+      "Ze maken een hut van takken.\n" +
+      "Noor haalt een deken van binnen.\n" +
+      "Sam zoekt stenen om de hut stevig te maken.\n" +
+      "Samen zijn ze trots op hun hut.";
+    qs.push(
+      storyQ(s1,"Wie spelen er buiten?",["Sam en Noor","Sam en Tim","Noor en Emma","De juf en Sam"],0),
+      storyQ(s1,"Wat maken Sam en Noor?",["Een hut van takken","Een tekening","Een tent in de klas","Een boot"],0),
+      storyQ(s1,"Waarom zoekt Sam stenen?",["Om de hut stevig te maken","Om mee te gooien","Om een pad te maken","Om mee te tellen"],0),
+      storyQ(s1,"Waar haalt Noor de deken vandaan?",["Van binnen","Uit de tuin","Bij de buren","Op school"],0),
+      storyQ(s1,"Hoe voelen Sam en Noor zich aan het einde?",["Trots","Boos","Bang","Verdrietig"],0),
+    );
+
+    // Spelling en taal (7)
+    qs.push(
+      q("taal","De hond _ snel.",["rent","rend","rende","renn"],0),
+      q("taal","Ik zie twee _ in de tuin.",["kat","katten","katt","katte"],1),
+      q("taal","Morgen _ ik naar oma.",["ga","gaa","gaat","gana"],0),
+      q("taal","De kinderen spelen _.",["buiten","buitn","buiten.","bouten"],0),
+      q("taal","_ ga jij slapen?",["Wanneer","waneer","Wanneeer","Wanner"],0),
+      q("taal","Verbeter de zin: ik ga morgen naar school",["Ik ga morgen naar school.","Ik ga Morgen naar school","ik ga morgen naar school","Ik ga morgen naar school"],0),
+      q("taal","Verbeter de zin: waar is mijn jas",["Waar is mijn jas?","Waar is mijn jas.","waar is mijn jas?","Waar is mijn jas"],0),
+    );
+
+    // Rekenen (5)
+    qs.push(
+      q("rekenen","48 + 27 =",["65","75","85","76"],1),
+      q("rekenen","63 - 19 =",["44","42","52","34"],0),
+      q("rekenen","6 x 4 =",["18","20","24","28"],2),
+      q("rekenen","5 x 3 =",["15","18","20","12"],0),
+      q("rekenen","Lisa heeft 35 snoepjes. Ze geeft er 18 weg. Hoeveel houdt ze over?",["15","16","17","18"],2),
+    );
+
+    // Tijd en meten (5)
+    qs.push(
+      q("rekenen","Hoe laat is het: half 9 =",["8:30","9:30","8:15","9:00"],0),
+      q("rekenen","Hoe laat is het: kwart over 6 =",["6:15","6:45","5:45","6:05"],0),
+      q("rekenen","Wat duurt langer?",["1 uur","45 minuten","Even lang","2 uur"],0),
+      q("rekenen","Wat is langer?",["1 meter","80 cm","50 cm","Gelijk"],0),
+      q("rekenen","Je begint om 3:00 te spelen en stopt om 4:30. Hoe lang speel je?",["1 uur 30 min","2 uur","1 uur","30 min"],0),
+    );
+
+    return withIds(qs);
+  }
+
+
 
   // ---------------------------
   // DOM
@@ -555,6 +616,7 @@
   const elLevel = document.getElementById("level");
   const elName = document.getElementById("name");
   const pillLevel = document.getElementById("pillLevel");
+  const subtitleCount = document.getElementById("subtitleCount");
 
   const elTimerOn = document.getElementById("timerOn");
   const elSecondsPerQ = document.getElementById("secondsPerQ");
@@ -588,11 +650,12 @@
   // ---------------------------
   // State
   // ---------------------------
-  const LABELS = { easy:"Makkelijk", mid:"Gemiddeld", hard:"Moeilijk" };
+  const LABELS = { easy:"Makkelijk", mid:"Gemiddeld", hard:"Moeilijk", e4:"Toets E4" };
   let activeLevel = "easy";
   let questions = [];
-  let answers = new Array(30).fill(null);
+  let answers = [];
   let idx = 0;
+  let totalQuestions = 30;
 
   // Timer state
   let timerEnabled = false;
@@ -613,14 +676,16 @@
   function updatePill(){
     activeLevel = elLevel.value;
     pillLevel.textContent = `Niveau: ${LABELS[activeLevel]}`;
+    const count = TESTS[activeLevel].length;
+    if (subtitleCount) subtitleCount.textContent = String(count);
   }
   function answeredCount(){
     return answers.filter(v => v !== null).length;
   }
   function updateProgressUI(){
-    progressText.textContent = `Vraag ${idx+1} / 30`;
-    answeredText.textContent = `Beantwoord: ${answeredCount()} / 30`;
-    barFill.style.width = `${((idx+1)/30)*100}%`;
+    progressText.textContent = `Vraag ${idx+1} / ${totalQuestions}`;
+    answeredText.textContent = `Beantwoord: ${answeredCount()} / ${totalQuestions}`;
+    barFill.style.width = `${((idx+1)/totalQuestions)*100}%`;
   }
 
   function clearTimer(){
@@ -638,7 +703,7 @@
     timerRow.style.display = "flex";
     remaining = secondsPerQ;
     questionStartedAt = Date.now();
-    timerBadge.textContent = `⏱️ ${remaining}s`;
+    timerBadge.textContent = `Tijd: ${remaining}s`;
     timeFill.style.width = "100%";
 
     timerId = setInterval(() => {
@@ -647,13 +712,13 @@
 
       if (newRemaining !== remaining){
         remaining = newRemaining;
-        timerBadge.textContent = `⏱️ ${remaining}s`;
+        timerBadge.textContent = `Tijd: ${remaining}s`;
         timeFill.style.width = `${(remaining / secondsPerQ) * 100}%`;
       }
 
       if (remaining <= 0){
         clearTimer();
-        setMsg("⏰ Tijd is op. Je gaat automatisch naar de volgende vraag.", false);
+        setMsg("Tijd is op. Je gaat automatisch naar de volgende vraag.", false);
         setTimeout(() => nextStep(true), 450);
       }
     }, 200);
@@ -693,7 +758,7 @@
     }
 
     btnPrev.disabled = (idx === 0);
-    btnNext.textContent = (idx === 29) ? "Afronden ✅" : "Volgende →";
+    btnNext.textContent = (idx === totalQuestions - 1) ? "Afronden" : "Volgende";
 
     startTimerForQuestion();
   }
@@ -702,7 +767,7 @@
     overlay.classList.add("active");
     let n = 3;
     countNum.textContent = String(n);
-    countSub.textContent = "Klaar? We beginnen zo…";
+    countSub.textContent = "Klaar? We beginnen zo...";
 
     const t = setInterval(() => {
       n--;
@@ -722,7 +787,8 @@
   function start(){
     activeLevel = elLevel.value;
     questions = TESTS[activeLevel];
-    answers = new Array(30).fill(null);
+    totalQuestions = questions.length;
+    answers = new Array(totalQuestions).fill(null);
     idx = 0;
 
     timerEnabled = !!elTimerOn.checked;
@@ -741,10 +807,10 @@
     clearTimer();
 
     let correct = 0;
-    const total = 30;
+    const total = totalQuestions;
 
     const name = (elName.value || "").trim();
-    const who = name ? name : "—";
+    const who = name ? name : "-";
 
     reviewEl.innerHTML = "";
 
@@ -764,7 +830,7 @@
       item.innerHTML = `
         <div class="reviewHead">
           <div style="font-weight:1000;">${qq.id}. ${escapeHtml(qq.text)}</div>
-          <div class="tag ${ok ? "good" : "bad"}">${ok ? "✅ Goed" : "❌ Fout"}</div>
+          <div class="tag ${ok ? "good" : "bad"}">${ok ? "Goed" : "Fout"}</div>
         </div>
         <div class="mini">Jouw antwoord: <span class="b">${escapeHtml(yourText)}</span></div>
         <div class="mini">Juiste antwoord: <span class="b">${escapeHtml(correctText)}</span></div>
@@ -784,14 +850,18 @@
       `Timer per vraag: ${timerEnabled ? (secondsPerQ + "s") : "uit"}`;
 
     showScreen("end");
+
+    if (correct === total){
+      playWinnerSound();
+    }
   }
 
   function nextStep(auto=false){
     if (answers[idx] === null && !auto){
-      setMsg("⚠️ Je hebt nog geen antwoord gekozen. Je mag doorgaan, maar dan telt het als fout.", false);
+      setMsg("Let op: Je hebt nog geen antwoord gekozen. Je mag doorgaan, maar dan telt het als fout.", false);
     }
 
-    if (idx === 29){
+    if (idx === totalQuestions - 1){
       finish();
       return;
     }

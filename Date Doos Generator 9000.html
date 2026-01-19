@@ -109,6 +109,21 @@ button.secondary{ background:#111827; }
   margin-top:12px;
 }
 
+.video{
+  position:relative;
+  padding-top:56.25%;
+  margin-top:12px;
+  border-radius:12px;
+  overflow:hidden;
+}
+.video iframe{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:0;
+}
+
 /* ===== Mobile tweaks ===== */
 @media (max-width:520px){
   .wrap{
@@ -182,12 +197,30 @@ button.secondary{ background:#111827; }
       <h2>Yes! 🎉</h2>
 
       <div class="rewardBox">
-        <p style="font-weight:900;">
-          🎉 <strong>Gefeliciteerd!</strong><br>
-          Het is gelukt 🎉<br>
-          Je hebt zojuist een <strong>golfdate</strong> ontgrendeld.<br>
-          Tijd om samen het gras op te gaan, te lachen en plezier te maken ⛳💛
-        </p>
+        <div id="rewardGolf">
+          <p style="font-weight:900;">
+            🎉 <strong>Gefeliciteerd!</strong><br>
+            Het is gelukt 🎉<br>
+            Je hebt zojuist een <strong>golfdate</strong> ontgrendeld.<br>
+            Tijd om samen het gras op te gaan, te lachen en plezier te maken ⛳💛
+          </p>
+        </div>
+        <div id="rewardZombie" class="hide">
+          <p style="font-weight:900;">
+            🎉 <strong>Gefeliciteerd!</strong><br>
+            Het is gelukt 🎉<br>
+            Je hebt zojuist een <strong>zombie date</strong> ontgrendeld.<br>
+            Tijd om samen de zombies te verslaan 😈🧟‍♂️🔥
+          </p>
+          <div class="video">
+            <iframe
+              src="https://www.youtube.com/embed/JWoFz3UAlnc?autoplay=0&rel=0"
+              title="YouTube video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+            ></iframe>
+          </div>
+        </div>
       </div>
 
       <button onclick="resetAll()">Terug naar start</button>
@@ -209,60 +242,93 @@ const VALID_CODES = [
    2) 3 raadsels (1x typen -> automatisch antwoord)
    3) 3 check (moet kloppen)
 */
-const QUESTIONS = [
-  // ❤️ OPEN VRAGEN
+const QUESTIONS_BY_CODE = {
+  "20182024": [
+    // OPEN VRAGEN
+    {
+      type: "open",
+      q: "Wat maakt jou blij?",
+      positive: "Wat lief ??."
+    },
+    {
+      type: "open",
+      q: "Wat vind je zo leuk aan kerst?",
+      positive: "Correct ???"
+    },
+
+    // RAADSELS
+
+    {
+      type: "riddle",
+      q: "Waarom zijn vissen zo slim?",
+      answerText: "Omdat ze in een school zwemmen ??"
+    },
+    {
+      type: "riddle",
+      q: "Een moeder heeft 6 appels en 5 kinderen. Hoe kan ze eerlijk alle appels verdelen?",
+      answerText: "Appelmoes maken! ????"
+    },
+    {
+      type: "riddle",
+      q: "Wat is wit, koud en komt vaak uit de lucht met kerst?",
+      answerText: "?? Sneeuw!"
+    },
+
+    // CHECKVRAGEN
+    {
+      type: "check",
+      q: "Welke sportschool was de eerste waar we samen heen gingen om te sporten?",
+      answers: ["sportschool","gym","ad den otter","basic-fit","fit for free","fitforfree"]
+    },
+    {
+      type: "check",
+      q: "Wat probeer je zo snel mogelijk in een gat te krijgen?",
+      answers: ["bal","de bal","golfbal","golf bal"]
+    },
+    {
+      type: "check",
+      q: "Ik ga over gras, soms raak je me verkeerd, maar samen is het leuker. Wat doen we?",
+      answers: ["golfen","golf","samen golfen"]
+    }
+  ]
+};
+
+const DEFAULT_QUESTIONS = [
+  {
+    type: "riddle",
+    q: "Ik ben dood, maar ik loop. Ik heb geen hartslag, maar wel honger. Wat ben ik?",
+    answerText: "Een zombie ?????"
+  },
+  {
+    type: "check",
+    q: "Hoe heet jouw favoriete zombiefilm?",
+    answers: ["resident evil","residentevil"]
+  },
+  {
+    type: "check",
+    q: "Wat eten zombies het liefst?",
+    answers: ["hersenen","brein","brains"]
+  },
   {
     type: "open",
-    q: "Wat maakt jou blij?",
-    positive: "Wat lief 💛."
-  },
-  {
-    type: "open",
-    q: "Wat vind je zo leuk aan kerst?",
-    positive: "Correct 🎄✨"
-  },
-
-  // 😂 RAADSELS
-
-  {
-    type: "riddle",
-    q: "Waarom zijn vissen zo slim?",
-    answerText: "Omdat ze in een school zwemmen 🐟"
-  },
-  {
-    type: "riddle",
-    q: "Een moeder heeft 6 appels en 5 kinderen. Hoe kan ze eerlijk alle appels verdelen?",
-    answerText: "Appelmoes maken! 🍎😄"
-  },
-  {
-    type: "riddle",
-    q: "Wat is wit, koud en komt vaak uit de lucht met kerst?",
-    answerText: "❄️ Sneeuw!"
-  },
-
-  // ✅ CHECKVRAGEN
-  {
-    type: "check",
-    q: "Welke sportschool was de eerste waar we samen heen gingen om te sporten?",
-    answers: ["sportschool","gym","ad den otter","basic-fit","fit for free","fitforfree"]
-  },
-  {
-    type: "check",
-    q: "Wat probeer je zo snel mogelijk in een gat te krijgen?",
-    answers: ["bal","de bal","golfbal","golf bal"]
-  },
-  {
-    type: "check",
-    q: "Ik ga over gras, soms raak je me verkeerd, maar samen is het leuker. Wat doen we?",
-    answers: ["golfen","golf","samen golfen"]
+    q: "Wat gaan wij samen doen om de zombies te verslaan?",
+    positive: "Klinkt als een topplan ?????????"
   }
 ];
+
+let activeQuestions = DEFAULT_QUESTIONS;
+const REWARD_BY_CODE = {
+  "20182024": "golf"
+};
+const DEFAULT_REWARD = "zombie";
 
 let qIndex = 0;
 
 /* 🎵 Music */
 const music = document.getElementById("bgMusic");
 music.volume = 0.35; // zacht
+const rewardGolf = document.getElementById("rewardGolf");
+const rewardZombie = document.getElementById("rewardZombie");
 
 function norm(s){
   return String(s||"").trim().toLowerCase().replace(/\s+/g," ");
@@ -275,6 +341,12 @@ function setMsg(el,text,good){
   el.className = "msg " + (good ? "good" : "bad");
 }
 
+function setRewardForCode(code){
+  const reward = REWARD_BY_CODE[code] || DEFAULT_REWARD;
+  rewardGolf.classList.toggle("hide", reward !== "golf");
+  rewardZombie.classList.toggle("hide", reward !== "zombie");
+}
+
 function startGame(){
   // ✅ Start muziek na user click (browser policy-proof)
   if (music && music.paused){
@@ -285,6 +357,8 @@ function startGame(){
   if (!VALID_CODES.includes(v)){
     return setMsg(startMsg,"❌ Dit nummer hoort niet bij de doos.",false);
   }
+  activeQuestions = QUESTIONS_BY_CODE[v] || DEFAULT_QUESTIONS;
+  setRewardForCode(v);
   qIndex = 0;
   start.classList.add("hide");
   quiz.classList.remove("hide");
@@ -296,14 +370,14 @@ function startGame(){
 }
 
 function renderQuestion(){
-  const cur = QUESTIONS[qIndex];
-  qNo.textContent = `Vraag ${qIndex+1} van ${QUESTIONS.length}`;
+  const cur = activeQuestions[qIndex];
+  qNo.textContent = `Vraag ${qIndex+1} van ${activeQuestions.length}`;
   qText.textContent = cur.q;
-  nextBtn.textContent = (qIndex===QUESTIONS.length-1) ? "Ontgrendel →" : "Volgende →";
+  nextBtn.textContent = (qIndex===activeQuestions.length-1) ? "Ontgrendel →" : "Volgende →";
 }
 
 function checkAnswer(){
-  const cur = QUESTIONS[qIndex];
+  const cur = activeQuestions[qIndex];
   const value = ans.value.trim();
 
   if (!value){
@@ -334,12 +408,12 @@ function checkAnswer(){
 
 /* ✅ Pauze: langer bij raadsels */
 function nextStep(){
-  const cur = QUESTIONS[qIndex];
+  const cur = activeQuestions[qIndex];
   const delay = (cur.type === "riddle") ? 4500 : 700; // ⏸️ 2s voor raadsels, 0.7s voor de rest
 
   setTimeout(()=>{
     qIndex++;
-    if (qIndex >= QUESTIONS.length){
+    if (qIndex >= activeQuestions.length){
       quiz.classList.add("hide");
       reward.classList.remove("hide");
       startConfetti();
@@ -354,6 +428,8 @@ function nextStep(){
 
 function resetAll(){
   qIndex=0;
+  activeQuestions = DEFAULT_QUESTIONS;
+  setRewardForCode("");
   quiz.classList.add("hide");
   reward.classList.add("hide");
   start.classList.remove("hide");

@@ -71,6 +71,51 @@ button:disabled{opacity:.5}
   background:linear-gradient(180deg,rgba(46,60,255,.12),rgba(46,60,255,.04));
   border-radius:22px;padding:16px;border:1px solid rgba(123,140,255,.25)
 }
+.overlay{
+  position:fixed;inset:0;z-index:999;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;background:linear-gradient(180deg,#f7f8ff,var(--bg));
+}
+.overlay.hidden{display:none}
+.endScreen{
+  position:fixed;left:50%;top:16px;bottom:16px;transform:translateX(-50%);
+  width:100%;max-width:560px;overflow:auto;
+  background:var(--card);border-radius:22px;padding:18px;
+  box-shadow:var(--shadow);border:1px solid var(--line);z-index:1001;
+}
+.quizCard{
+  margin-top:16px;text-align:center;
+  background:linear-gradient(180deg,rgba(10,138,58,.14),rgba(10,138,58,.04));
+  border-radius:22px;padding:16px;border:1px solid rgba(10,138,58,.25);
+  position:relative;
+}
+.quizCard{max-width:520px;width:100%}
+.quizMeta{margin-top:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.metaItem{
+  background:var(--soft);border:1px solid var(--line);
+  padding:6px 8px;border-radius:10px;font-weight:900;font-size:12px;color:var(--muted)
+}
+.levelBar{margin-top:8px;height:8px;border-radius:999px;background:#e7e9f5;overflow:hidden;border:1px solid rgba(231,233,245,.9)}
+.levelBar > div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.badgeRow{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.badge{
+  background:#fff;border:1px solid var(--line);padding:4px 8px;border-radius:999px;
+  font-weight:900;font-size:11px;color:var(--muted)
+}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti > i{
+  position:absolute;width:8px;height:8px;border-radius:2px;opacity:.9;
+  animation:confetti 700ms ease-out forwards;
+}
+@keyframes confetti{
+  0%{transform:translateY(0) rotate(0deg);opacity:1}
+  100%{transform:translateY(140px) rotate(220deg);opacity:0}
+}
+.choices{margin-top:12px;display:grid;gap:10px}
+.choiceBtn{width:100%;text-align:center}
+.quizActions{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quizTimer{margin-top:10px}
+.quizStats{margin-top:10px;font-weight:900;font-size:12px;color:var(--muted)}
 .big{font-size:44px;font-weight:1000}
 .hint{font-size:13px;font-weight:800;color:var(--muted)}
 
@@ -128,144 +173,218 @@ code{font-weight:900}
 
 <body>
 <div class="wrap">
-<div class="card">
+  <div class="card">
 
-<header>
-  <div>
-    <h1>SpellingTrainer</h1>
-    <div class="sub">Groep 4 • schrijven op papier</div>
-    <div class="audioBar">
-      <button id="speechToggle" class="secondary small">🔊 Spraak: aan</button>
-      <button id="repeat" class="secondary small">🔁 Herhaal woord</button>
-      <label style="font-weight:900;color:var(--muted);font-size:12px;">Tempo</label>
-      <input id="rate" type="range" min="70" max="130" value="100">
-      <span class="pill" id="modePill">Modus: woord</span>
-    </div>
-  </div>
-
-  <div class="timer">
-    <div class="timerTop">
-      <div>⏱️ <span id="time">20</span>s</div>
-      <div style="font-size:12px;color:var(--muted);font-weight:900;">timer</div>
-    </div>
-    <div class="timerBar"><div id="timeBarFill"></div></div>
-  </div>
-</header>
-
-<div class="progressWrap">
-  <div class="progressTop">
-    <div id="progressText">Opdracht 1 / 20</div>
-    <div id="chipText">20 sec per opdracht</div>
-  </div>
-  <div class="bar"><div id="barFill"></div></div>
-</div>
-
-<div class="listenCard">
-  <div class="big" id="bigHint">🎧 Luister…</div>
-  <div class="hint" id="hintLine">Schrijf het woord op papier</div>
-</div>
-
-<div class="grid">
-  <div class="field">
-    <div class="label">MODUS</div>
-    <select id="modeSelect">
-      <option value="word" selected>Woord</option>
-      <option value="sentence">Zin + woord (context → doelwoord)</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <div class="label">OEFENING</div>
-    <select id="listSelect">
-      <!-- bestaand s/z -->
-      <option value="mix_sz" selected>Mix s/z</option>
-      <option value="only_s">Alleen s</option>
-      <option value="only_z">Alleen z</option>
-
-      <!-- extra -->
-      <option value="mix_dt">Mix d/t</option>
-      <option value="only_d">Alleen d</option>
-      <option value="only_t">Alleen t</option>
-
-      <option value="mix_dim">Mix verkleinwoorden</option>
-      <option value="only_je">Verkleinwoorden (je/pje/mpje/kje)</option>
-      <option value="only_tje">Verkleinwoorden (tje/etje)</option>
-
-      <option value="comp">Samenstellingen</option>
-      <option value="mix_all">Mix alles</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <div class="label">TIJD</div>
-    <select id="timeSetting">
-      <option value="10">10 sec</option>
-      <option value="20" selected>20 sec</option>
-      <option value="30">30 sec</option>
-      <option value="45">45 sec</option>
-      <option value="60">60 sec</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <div class="label">AANTAL OPDRACHTEN</div>
-    <select id="countSetting">
-      <option value="10">10</option>
-      <option value="20" selected>20</option>
-      <option value="30">30</option>
-    </select>
-  </div>
-</div>
-
-<details>
-  <summary>✍️ Eigen lijst</summary>
-  <div class="smallmuted" style="padding:0 12px 12px;">
-    <div><b>Woord-modus:</b> 1 woord per regel.</div>
-    <div><b>Zin + woord-modus:</b> per regel <code>zin|doelwoord</code> (bijv. <code>Het huisje is klein|huisje</code>).</div>
-  </div>
-
-  <textarea id="customWords" placeholder="Plak hier je lijst..."></textarea>
-
-  <div class="btnRow" style="margin-top:10px;">
-    <button id="useCustom" class="secondary">Gebruik lijst (opslaan)</button>
-    <button id="clearCustom" class="danger">Wis woordenlijst</button>
-  </div>
-
-  <div class="smallmuted" id="customInfo"></div>
-</details>
-
-<div class="btnRow">
-  <button id="start">Start ▶️</button>
-  <button id="skip" class="secondary" disabled>Volgende ➜</button>
-</div>
-
-<div id="msg" class="msg"></div>
-
-<div id="end" class="hidden">
-  <h2>Overzicht</h2>
-
-  <div class="scoreBox">
-    <div class="scoreTop">
+    <header>
       <div>
-        <div class="scoreTitle">Hoeveel opdrachten heb je goed?</div>
-        <div class="smallmuted">Vul 0 t/m <span id="totalWordsLabel">20</span>.</div>
+        <h1>SpellingTrainer</h1>
+        <div class="sub">Groep 4 • schrijven op papier</div>
+        <div class="audioBar">
+          <button id="speechToggle" class="secondary small">🔊 Spraak: aan</button>
+          <button id="repeat" class="secondary small">🔁 Herhaal woord</button>
+          <label style="font-weight:900;color:var(--muted);font-size:12px;">Tempo</label>
+          <input id="rate" type="range" min="70" max="130" value="100">
+          <span class="pill" id="modePill">Modus: woord</span>
+        </div>
       </div>
-      <div class="grade" id="gradeBox">—</div>
+
+      <div class="timer">
+        <div class="timerTop">
+          <div>⏱️ <span id="time">20</span>s</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:900;">timer</div>
+        </div>
+        <div class="timerBar"><div id="timeBarFill"></div></div>
+      </div>
+    </header>
+
+    <div class="progressWrap">
+      <div class="progressTop">
+        <div id="progressText">Opdracht 1 / 20</div>
+        <div id="chipText">20 sec per opdracht</div>
+      </div>
+      <div class="bar"><div id="barFill"></div></div>
     </div>
 
-    <div style="margin-top:10px;">
-      <div class="label">AANTAL GOED</div>
-      <input id="correctInput" type="number" min="0" max="20" inputmode="numeric" placeholder="Bijv. 16">
-      <div class="smallmuted" id="gradeExplain"></div>
+    <div class="listenCard">
+      <div class="big" id="bigHint">🎧 Luister…</div>
+      <div class="hint" id="hintLine">Schrijf het woord op papier</div>
     </div>
+
+
+    <div class="grid">
+      <div class="field">
+        <div class="label">MODUS</div>
+        <select id="modeSelect">
+          <option value="word" selected>Woord</option>
+          <option value="sentence">Zin + woord (context → doelwoord)</option>
+        </select>
+      </div>
+
+      
+      <div class="field">
+        <div class="label">TRAINER</div>
+        <select id="trainerMode">
+          <option value="listen" selected>Luister</option>
+          <option value="quiz">Quiz</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <div class="label">OEFENING</div>
+        <select id="listSelect">
+          <option value="mix_sz" selected>Mix s/z</option>
+          <option value="only_s">Alleen s</option>
+          <option value="only_z">Alleen z</option>
+
+          <option value="mix_dt">Mix d/t</option>
+          <option value="only_d">Alleen d</option>
+          <option value="only_t">Alleen t</option>
+
+          <option value="mix_dim">Mix verkleinwoorden</option>
+          <option value="only_je">Verkleinwoorden (je/pje/mpje/kje)</option>
+          <option value="only_tje">Verkleinwoorden (tje/etje)</option>
+
+          <option value="comp">Samenstellingen</option>
+          <option value="schr">Klankwoorden schr</option>
+          <option value="ei_words">Woorden met ei</option>
+          <option value="ij_words">Woorden met ij</option>
+          <option value="ng_words">Klankwoorden ng</option>
+          <option value="nk_words">Klankwoorden nk</option>
+          <option value="eeuw_words">Klankwoorden eeuw</option>
+          <option value="ieuw_words">Klankwoorden ieuw</option>
+          <option value="uw_words">Klankwoorden uw</option>
+          <option value="regel_d">Regelwoorden d</option>
+          <option value="regel_t">Regelwoorden t</option>
+          <option value="stomme_e">Stomme e</option>
+          <option value="eer_words">Klankwoorden eer</option>
+          <option value="eur_words">Klankwoorden eur</option>
+          <option value="oor_words">Klankwoorden oor</option>
+          <option value="mix_all">Mix alles</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <div class="label">TIJD</div>
+        <select id="timeSetting">
+          <option value="10">10 sec</option>
+          <option value="20" selected>20 sec</option>
+          <option value="30">30 sec</option>
+          <option value="45">45 sec</option>
+          <option value="60">60 sec</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <div class="label">AANTAL OPDRACHTEN</div>
+        <select id="countSetting">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="30">30</option>
+        </select>
+      </div>
+    </div>
+
+    <details>
+      <summary>✍️ Eigen lijst</summary>
+      <div class="smallmuted" style="padding:0 12px 12px;">
+        <div><b>Woord-modus:</b> 1 woord per regel.</div>
+        <div><b>Zin + woord-modus:</b> per regel <code>zin|doelwoord</code> (bijv. <code>Het huisje is klein|huisje</code>).</div>
+      </div>
+
+      <textarea id="customWords" placeholder="Plak hier je lijst..."></textarea>
+
+      <div class="btnRow" style="margin-top:10px;">
+        <button id="useCustom" class="secondary">Gebruik lijst (opslaan)</button>
+        <button id="clearCustom" class="danger">Wis woordenlijst</button>
+      </div>
+
+      <div class="smallmuted" id="customInfo"></div>
+    </details>
+
+    <div class="btnRow">
+      <button id="start">Start ▶️</button>
+      <button id="skip" class="secondary" disabled>Volgende ➜</button>
+    </div>
+
+    <div id="msg" class="msg"></div>
+
+    <div id="end" class="hidden">
+      <h2>Overzicht</h2>
+
+      <div class="scoreBox" id="practiceScoreBox">
+        <div class="scoreTop">
+          <div>
+            <div class="scoreTitle">Hoeveel opdrachten heb je goed?</div>
+            <div class="smallmuted">Vul 0 t/m <span id="totalWordsLabel">20</span>.</div>
+          </div>
+          <div class="grade" id="gradeBox">—</div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <div class="label">AANTAL GOED</div>
+          <input id="correctInput" type="number" min="0" max="20" inputmode="numeric" placeholder="Bijv. 16">
+          <div class="smallmuted" id="gradeExplain"></div>
+        </div>
+      </div>
+
+    <div class="scoreBox hidden" id="quizScoreBox">
+      <div class="scoreTop">
+        <div>
+          <div class="scoreTitle">Quiz score</div>
+          <div class="smallmuted">Aantal goed en je beste reeks.</div>
+        </div>
+        <div class="grade" id="quizScoreGrade">0</div>
+      </div>
+
+      <div class="smallmuted" id="quizRewardPoints"></div>
+      <div class="smallmuted" id="quizRewardLevel"></div>
+      <div class="smallmuted" id="quizRewardBadges"></div>
+      <div class="smallmuted" id="quizScoreDetail"></div>
+    </div>
+
+<div class="list" id="wordList"></div>
+
+      <div class="btnRow">
+        <button id="homeBtn" class="secondary">Hoofdmenu</button>
+        <button id="restart" class="secondary">Nieuwe sessie</button>
+      </div>
+    </div> <!-- /end -->
+
+</div> <!-- /card -->
+</div> <!-- /wrap -->
+
+<div class="overlay hidden" id="endOverlay"></div>
+
+<div class="overlay hidden" id="quizOverlay">
+  <div class="quizCard" id="quizCard">
+    <div class="big" id="quizTitle">Quiz</div>
+    <div class="hint" id="quizHint">Luister en kies het juiste woord</div>
+    <div class="quizMeta">
+      <div class="metaItem">Punten: <span id="quizPoints">0</span></div>
+      <div class="metaItem">Level: <span id="quizLevel">1</span></div>
+      <div class="metaItem">Levens: <span id="quizLives">3</span></div>
+    </div>
+    <div class="levelBar"><div id="quizLevelFill"></div></div>
+    <div class="badgeRow" id="quizBadgeRow"></div>
+    <div class="timer quizTimer">
+      <div class="timerTop">
+        <div><span id="quizTime">20</span>s</div>
+        <div style="font-size:12px;color:var(--muted);font-weight:900;">timer</div>
+      </div>
+      <div class="timerBar"><div id="quizTimeBarFill"></div></div>
+    </div>
+    <div class="choices" id="choiceWrap">
+      <button class="secondary choiceBtn" data-choice="0"></button>
+      <button class="secondary choiceBtn" data-choice="1"></button>
+      <button class="secondary choiceBtn" data-choice="2"></button>
+    </div>
+    <div class="quizActions">
+      <button class="secondary" id="quizNext">Volgende</button>
+      <button class="danger" id="quizStop">Stop</button>
+    </div>
+    <div class="quizStats" id="quizStats">Score: 0/0 | Reeks: 0 | Beste: 0</div>
+    <div class="confetti" id="quizConfetti"></div>
   </div>
-
-  <div class="list" id="wordList"></div>
-
-  <button id="restart" class="secondary">Nieuwe sessie</button>
-</div>
-
-</div>
 </div>
 
 <script>
@@ -274,7 +393,6 @@ code{font-weight:900}
   // GROEP 4 WOORDENLIJSTEN (gecontroleerd, geen dubbels, simpel)
   // =========================================================
 
-  // s-woorden (start / extra erbij)
   const WORDS_S = [
     "soep","sok","stoel","slang","schaap","sneeuw","snoep","school","straat","spelen",
     "snel","stil","slaap","slim","stap","stop","stem","stok","sport","spin",
@@ -282,7 +400,6 @@ code{font-weight:900}
     "sjaal","sap","spel","speeltuin","schoolplein","schaal","staart","stuur","slak","ster"
   ];
 
-  // z-woorden (simpel, groep 4)
   const WORDS_Z = [
     "zon","zee","zacht","zomer","zout","ziek","zak","zand","zitten","zeggen",
     "zoeken","zorgen","zebra","zilver","zondag","zoet","zeep","zin","zeker","zwaar",
@@ -298,39 +415,31 @@ code{font-weight:900}
     "vloed","raad","tijd","schuld","wereld","schoolbord","handdoek","mondkap","windmolen","vriendje"
   ];
 
-  // t-woorden: eindigen op T (echte t)
-  const WORDS_T = [
+  // t-woorden: eindigen op T (echte t) — opgeschoond en groep-4 vriendelijk (geen werkwoorden)
+  const WORDS_T_RAW = [
     "kat","boot","wit","kort","plant","fiets","nacht","licht","taart","tak",
     "touw","tent","punt","post","hart","vast","gift","rat","pet","net",
-    "nat","vet","mat","slot","kast","voet","kaart","woordt","sport","fruit" // let op: "woordt" is fout; daarom hieronder weggehaald
-  ].filter(w => w !== "woordt"); // extra safety
+    "nat","vet","mat","slot","kast","voet","markt","tocht","fruit",
+    "zout","fluit","beet","kist","pact"
+  ];
 
-  // Voeg extra correcte t-woorden toe (eindigen op t)
-  WORDS_T.push(
-    "markt","tocht","tuint","print","kijkt","zout","knot","fluit","beet","gaat"
-  );
-  // let op: "gaat" eindigt op t (werkwoord) — voor d/t-woordspel kan dat verwarrend zijn.
-  // Daarom halen we werkwoorden eruit en vervangen door zelfstandige/algemene woorden.
-  const BAD_T = new Set(["kijkt","gaat","tuint","print"]);
-  for (let i = WORDS_T.length-1; i>=0; i--) if (BAD_T.has(WORDS_T[i])) WORDS_T.splice(i,1);
-  WORDS_T.push("stuk","pact","boot","slot","kist","koest","tand",""); // tand hoort bij d, leeg weg
-  // opruimen: alleen unieke, eindigt op t, geen leeg, geen tand
-  {
+  function uniqueCleanEndsWithT(arr){
     const seen = new Set();
-    const cleaned = [];
-    for (const w of WORDS_T) {
-      if (!w) continue;
-      if (w === "tand") continue;
-      if (!w.endsWith("t")) continue;
-      if (seen.has(w)) continue;
-      seen.add(w);
-      cleaned.push(w);
+    const out = [];
+    for(const w of arr){
+      const x = String(w || "").trim();
+      if(!x) continue;
+      if(!x.endsWith("t")) continue;
+      if(seen.has(x)) continue;
+      seen.add(x);
+      out.push(x);
     }
-    WORDS_T.length = 0;
-    WORDS_T.push(...cleaned);
+    return out;
   }
 
-  // verkleinwoorden: "je/pje/mpje/kje" (makkelijk & herkenbaar)
+  const WORDS_T = uniqueCleanEndsWithT(WORDS_T_RAW);
+
+  // verkleinwoorden: "je/pje/mpje/kje"
   const DIM_JE = [
     "huisje","visje","zusje","broertje","koekje","takje","lampje","boompje","bloempje","raampje",
     "snoepje","bordje","kaartje","broekje","jasje","hondje","katje","fietsje","bootje","pootje",
@@ -338,14 +447,14 @@ code{font-weight:900}
     "kopje","lepeltje","stoeltje","kussentje","balletje","kraaltje","schuurtje","tafeltje","mannetje","zoentje"
   ];
 
-  // verkleinwoorden: "tje/etje" (simpel, vaak voorkomend)
+  // verkleinwoorden: "tje/etje"
   const DIM_TJE = [
     "tafeltje","mannetje","laddertje","poppetje","vrouwtje","bloemetje","autootje","konijntje","vlindertje","spinnetje",
     "karretje","beddetje","stoeltje","boeketje","briefje","raampje","deurtje","touwtje","bootje","katje",
     "ruitje","bandje","mandje","zoentje","schaaltje","pennetje","gangetje","vlaggetje","blaadje","ijsje"
   ];
 
-  // samenstellingen (groep 4, simpel)
+  // samenstellingen
   const COMPOUNDS = [
     "voetbal","schooltas","zonnebril","fietsbel","huisdeur","regenjas","winterjas","keukentafel","broodtrommel","deurbel",
     "schoolplein","speelplaats","tandenborstel","handdoek","slaapkamer","boekentas","speelgoed","schoolbank","zandkasteel","fietshelm",
@@ -353,17 +462,85 @@ code{font-weight:900}
     "regenboog","schoolbord","weekendtas","handzeep","zomerfeest","tuinhek","klaslokaal","boterhamzak","voetstap","zonneschijn"
   ];
 
-  // Mixen
+  // extra lijsten (klanken & regels)
+  const WORDS_SCHR = [
+    "de schaar","de school","de schoen","de schat","het schip","ik schiet","ik schop","ik schep","de schelp","de schaats",
+    "de schil","het scherm","schoon","scherp","ik schrijf","schrijven","de schrijver","het schrift","de schroef","ik schrik",
+    "de schreeuw","tijdschrift","handschrift","schrift","schram","schraal","ik schrok","schrobben","schuur","schilder",
+    "schelden","ik schenk","school","schooldeur"
+  ];
+
+  const WORDS_EI = [
+    "zei","wei","mei","hei","ei","trein","plein","klein","meisje","klei",
+    "reis","dweil","geit","zeil","eik","aardbei","eitje","treintje"
+  ];
+
+  const WORDS_IJ = [
+    "ijs","de rij","de lijst","rijst","jij","hij is","zij is","wij zijn","kwijt","prijs",
+    "pijn","het krijt","de pijl","vijf","vrij","rijk","blij","kijk"
+  ];
+
+  const WORDS_NG = [
+    "bang","tong","zing","lang","jong","eng","de ring","de slang","wang","de gang",
+    "wangen","het ding","de sprong","ik zing","de vangst","vangen","jonger","vinger"
+  ];
+
+  const WORDS_NK = [
+    "de bank","slank","zink","drink","dank","denk","de pink","ik drink","ik zink","flink",
+    "de flank","de plank","ik schenk","de enkel","links","de vonk","zonk","drinken","de inkt"
+  ];
+
+  const WORDS_EEUW = [
+    "eeuw","leeuw","sneeuw","meeuw","de spreeuw","ik schreeuw","ik geeuw","sneeuwen","leeuwen"
+  ];
+
+  const WORDS_IEUW = [
+    "nieuw","nieuwer","het nieuws","benieuwd","opnieuw","kieuwen","nieuwe","kieuw","nieuwsgierig"
+  ];
+
+  const WORDS_UW = [
+    "uw","duw","ruw","uw jas","schaduw","duwen","ruwe","zenuwen"
+  ];
+
+  const WORDS_REGEL_D = [
+    "hond","koud","honden","koude","vriend","hand","vriendje","handschoen","het paard","de mond",
+    "de brand","het hoofd","goed","hondje","goud","brandweer","hoofdstuk","gouden","bord","noodgeval",
+    "handen","handdoek","handschrift","aardbei"
+  ];
+
+  const WORDS_REGEL_T = [
+    "krant","stout","voet","voetbal","het bootje","de straat","het feest","de staart","ziet","zoet",
+    "zout","het feestje","de bootreis","de plant","de sport","de poort","de fout","de schat","kort","nat",
+    "heet","natte","het foutje","het sportveld","de schatkist","ik betaal","verdriet","verdrietig"
+  ];
+
+  const WORDS_STOMME_E = [
+    "wandeling","krokodil","duimen","begrijp","dieren","liever","schieten","moeder","roepen","ruiken",
+    "kruipen","buiten","keuken","heuvel","beugel"
+  ];
+
+  const WORDS_EER = [
+    "peer","beer","weer","verkeer","ik smeer","eerst","meer","teer","parkeer"
+  ];
+
+  const WORDS_EUR = [
+    "deur","de geur","zeur","scheur","de beurt","speurtocht","spreekbeurt","kleuren","zeuren","gebeuren"
+  ];
+
+  const WORDS_OOR = [
+    "hoor","voor","voorhoofd","het oor","ontspoor","het spoor","de boor","de poort","een soort","ik hoor",
+    "door"
+  ];
+
   const MIX_SZ  = [...new Set(WORDS_S.concat(WORDS_Z))];
   const MIX_DT  = [...new Set(WORDS_D.concat(WORDS_T))];
   const MIX_DIM = [...new Set(DIM_JE.concat(DIM_TJE))];
-  const MIX_ALL = [...new Set(MIX_SZ.concat(MIX_DT, MIX_DIM, COMPOUNDS))];
+  const MIX_ALL = [...new Set(MIX_SZ.concat(MIX_DT, MIX_DIM, COMPOUNDS, WORDS_SCHR, WORDS_EI, WORDS_IJ, WORDS_NG, WORDS_NK, WORDS_EEUW, WORDS_IEUW, WORDS_UW, WORDS_REGEL_D, WORDS_REGEL_T, WORDS_STOMME_E, WORDS_EER, WORDS_EUR, WORDS_OOR))];
 
   // =========================================================
-  // GROEP 4 KORTE ZINNEN (zin|doelwoord) – gecontroleerd
+  // GROEP 4 KORTE ZINNEN (zin|doelwoord)
   // =========================================================
 
-  // s/z mix
   const SENT_SZ_MIX = [
     "De zon is warm|zon",
     "Ik zie de zee|zee",
@@ -423,7 +600,6 @@ code{font-weight:900}
     "Het is zeker waar|zeker"
   ];
 
-  // d/t (hier: doelwoorden uit de D- of T-lijst)
   const SENT_DT_MIX = [
     "De hond rent weg|hond",
     "Ik zie een bord|bord",
@@ -483,7 +659,6 @@ code{font-weight:900}
     "Het is vast goed|vast"
   ];
 
-  // verkleinwoorden (mix)
   const SENT_DIM_MIX = [
     "Het huisje is klein|huisje",
     "Ik zie een visje|visje",
@@ -507,7 +682,6 @@ code{font-weight:900}
     "Het tafeltje staat daar|tafeltje"
   ];
 
-  // je/pje/mpje/kje (we noemen het "je")
   const SENT_JE_ONLY = [
     "Het huisje is klein|huisje",
     "Ik zie een visje|visje",
@@ -526,7 +700,6 @@ code{font-weight:900}
     "Ik geef een zoentje|zoentje"
   ];
 
-  // tje/etje
   const SENT_TJE_ONLY = [
     "Het mannetje loopt|mannetje",
     "Het autootje rijdt|autootje",
@@ -545,7 +718,6 @@ code{font-weight:900}
     "Het blaadje valt|blaadje"
   ];
 
-  // samenstellingen
   const SENT_COMP = [
     "Ik pak mijn schooltas|schooltas",
     "De voetbal ligt buiten|voetbal",
@@ -564,9 +736,281 @@ code{font-weight:900}
     "Ik loop op het fietspad|fietspad"
   ];
 
-  // mix all zinnen
-  const SENT_ALL = []
-    .concat(SENT_SZ_MIX, SENT_DT_MIX, SENT_DIM_MIX, SENT_COMP);
+
+  const SENT_SCHR = [
+    "Ik knip met de schaar|de schaar",
+    "De school is dichtbij|de school",
+    "De schoen is nat|de schoen",
+    "De schat ligt daar|de schat",
+    "Het schip vaart weg|het schip",
+    "In het spel zeg ik: ik schiet|ik schiet",
+    "Ik schop de bal|ik schop",
+    "Ik schep zand|ik schep",
+    "De schelp is mooi|de schelp",
+    "De schaats glijdt snel|de schaats",
+    "De schil is dik|de schil",
+    "Het scherm is helder|het scherm",
+    "Het huis is schoon|schoon",
+    "Het mes is scherp|scherp",
+    "Ik schrijf in mijn schrift|ik schrijf",
+    "Ik wil schrijven|schrijven",
+    "De schrijver werkt hard|de schrijver",
+    "Het schrift is nieuw|het schrift",
+    "De schroef is los|de schroef",
+    "Ik schrik van de hond|ik schrik",
+    "Ik hoor een schreeuw|de schreeuw",
+    "Ik lees een tijdschrift|tijdschrift",
+    "Mijn handschrift is net|handschrift",
+    "Mijn schrift ligt hier|schrift",
+    "Ik heb een schram|schram",
+    "De grond is schraal|schraal",
+    "Gisteren zei ik: ik schrok|ik schrok",
+    "We gaan schrobben|schrobben",
+    "De schuur is groot|schuur",
+    "De schilder is bezig|schilder",
+    "Niet schelden in de klas|schelden",
+    "Ik schenk melk in|ik schenk",
+    "Ik ga naar school|school",
+    "De schooldeur is dicht|schooldeur"
+  ];
+
+  const SENT_EI = [
+    "Ik zei ja|zei",
+    "De wei is groen|wei",
+    "Mei is warm|mei",
+    "De hei is stil|hei",
+    "Ik zie een ei|ei",
+    "De trein komt aan|trein",
+    "Het plein is leeg|plein",
+    "Het huis is klein|klein",
+    "Het meisje lacht|meisje",
+    "Klei is zacht|klei",
+    "We gaan op reis|reis",
+    "Ik pak een dweil|dweil",
+    "De geit eet gras|geit",
+    "Het zeil is wit|zeil",
+    "De eik is oud|eik",
+    "Aardbei is lekker|aardbei",
+    "Ik eet een eitje|eitje",
+    "Het treintje rijdt|treintje"
+  ];
+
+  const SENT_IJ = [
+    "Ik eet ijs|ijs",
+    "De rij is lang|de rij",
+    "Ik maak een lijst|de lijst",
+    "Rijst kookt snel|rijst",
+    "Jij bent hier|jij",
+    "Hij is blij|hij is",
+    "Zij is thuis|zij is",
+    "Wij zijn klaar|wij zijn",
+    "Ik ben mijn pen kwijt|kwijt",
+    "De prijs is laag|prijs",
+    "Mijn arm doet pijn|pijn",
+    "Het krijt is wit|het krijt",
+    "De pijl wijst naar links|de pijl",
+    "Ik zie vijf vogels|vijf",
+    "Ik ben vrij vandaag|vrij",
+    "Dit land is rijk|rijk",
+    "Ik ben blij|blij",
+    "Kijk naar mij|kijk"
+  ];
+
+  const SENT_NG = [
+    "Ik ben bang|bang",
+    "De tong is roze|tong",
+    "Ik zing hard|zing",
+    "De weg is lang|lang",
+    "De jongen is jong|jong",
+    "Het is eng|eng",
+    "De ring glanst|de ring",
+    "De slang is groen|de slang",
+    "Ik heb een wang|wang",
+    "De gang is stil|de gang",
+    "Mijn wangen zijn rood|wangen",
+    "Ik vind het ding|het ding",
+    "De sprong is ver|de sprong",
+    "Ik zing graag|ik zing",
+    "De vangst is groot|de vangst",
+    "Wij gaan vangen|vangen",
+    "Mijn broer is jonger|jonger",
+    "Ik wijs naar mijn vinger|vinger"
+  ];
+
+  const SENT_NK = [
+    "Ik zit op de bank|de bank",
+    "De boom is slank|slank",
+    "Zink is een metaal|zink",
+    "Ik drink water|drink",
+    "Dank je wel|dank",
+    "Ik denk even|denk",
+    "Mijn vinger is de pink|de pink",
+    "Ik drink melk|ik drink",
+    "Ik zink in het water|ik zink",
+    "De tas is flink zwaar|flink",
+    "De flank doet pijn|de flank",
+    "De plank is lang|de plank",
+    "Ik schenk thee in|ik schenk",
+    "De enkel is dik|de enkel",
+    "Ik ga naar links|links",
+    "De vonk is klein|de vonk",
+    "Gisteren zonk de boot|zonk",
+    "Wij gaan drinken|drinken",
+    "De inkt is blauw|de inkt"
+  ];
+
+  const SENT_EEUW = [
+    "Een eeuw is lang|eeuw",
+    "De leeuw brult|leeuw",
+    "Er ligt sneeuw|sneeuw",
+    "Een meeuw vliegt|meeuw",
+    "De spreeuw zingt|de spreeuw",
+    "Ik schreeuw hard|ik schreeuw",
+    "Ik geeuw omdat ik moe ben|ik geeuw",
+    "Het gaat sneeuwen|sneeuwen",
+    "Leeuwen zijn sterk|leeuwen"
+  ];
+
+  const SENT_IEUW = [
+    "Het boek is nieuw|nieuw",
+    "Dit is nieuwer|nieuwer",
+    "Ik lees het nieuws|het nieuws",
+    "Ik ben benieuwd|benieuwd",
+    "We beginnen opnieuw|opnieuw",
+    "Vissen hebben kieuwen|kieuwen",
+    "Ik heb nieuwe schoenen|nieuwe",
+    "Ik zie een kieuw|kieuw",
+    "Hij is nieuwsgierig|nieuwsgierig"
+  ];
+
+  const SENT_UW = [
+    "Dit is uw tas|uw",
+    "Ik duw de deur|duw",
+    "Het papier is ruw|ruw",
+    "Uw jas hangt hier|uw jas",
+    "De schaduw is lang|schaduw",
+    "Wij gaan duwen|duwen",
+    "Een ruwe steen|ruwe",
+    "Ik heb zenuwen|zenuwen"
+  ];
+
+  const SENT_REGEL_D = [
+    "De hond blaft|hond",
+    "Het water is koud|koud",
+    "Ik zie twee honden|honden",
+    "Een koude dag|koude",
+    "Mijn vriend lacht|vriend",
+    "Mijn hand is vies|hand",
+    "Mijn vriendje komt mee|vriendje",
+    "Een warme handschoen|handschoen",
+    "Het paard rent|het paard",
+    "De mond is dicht|de mond",
+    "De brand is groot|de brand",
+    "Het hoofd is rond|het hoofd",
+    "Het is goed|goed",
+    "Een klein hondje|hondje",
+    "Het goud glanst|goud",
+    "De brandweer helpt|brandweer",
+    "Het hoofdstuk is klaar|hoofdstuk",
+    "De gouden ring|gouden",
+    "Het bord is leeg|bord",
+    "Een noodgeval is erg|noodgeval",
+    "Mijn handen zijn koud|handen",
+    "Ik pak een handdoek|handdoek",
+    "Mijn handschrift is netjes|handschrift",
+    "Aardbei is rood|aardbei"
+  ];
+
+  const SENT_REGEL_T = [
+    "Ik lees de krant|krant",
+    "Een stout kind|stout",
+    "Mijn voet doet pijn|voet",
+    "Ik speel voetbal|voetbal",
+    "Het bootje drijft|het bootje",
+    "De straat is lang|de straat",
+    "Het feest is leuk|het feest",
+    "De staart is lang|de staart",
+    "Ziet hij mij|ziet",
+    "De soep is zoet|zoet",
+    "Het zout is wit|zout",
+    "Het feestje is klein|het feestje",
+    "De bootreis is lang|de bootreis",
+    "De plant is groen|de plant",
+    "Ik doe aan sport|de sport",
+    "De poort is dicht|de poort",
+    "Dat is een fout|de fout",
+    "De schat is weg|de schat",
+    "Het is kort|kort",
+    "Het is nat|nat",
+    "Het eten is heet|heet",
+    "Mijn natte handen|natte",
+    "Het foutje is klein|het foutje",
+    "Het sportveld is groot|het sportveld",
+    "De schatkist is vol|de schatkist",
+    "Ik betaal met muntjes|ik betaal",
+    "Ik heb verdriet|verdriet",
+    "Ik ben verdrietig|verdrietig"
+  ];
+
+  const SENT_STOMME_E = [
+    "We maken een wandeling|wandeling",
+    "Een krokodil zwemt|krokodil",
+    "Ik tel mijn duimen|duimen",
+    "Ik begrijp het|begrijp",
+    "Dieren slapen|dieren",
+    "Ik ben liever thuis|liever",
+    "Ik hoor schieten|schieten",
+    "Mijn moeder belt|moeder",
+    "Wij roepen hard|roepen",
+    "Ik kan ruiken|ruiken",
+    "Kinderen kruipen|kruipen",
+    "Ik ga naar buiten|buiten",
+    "De keuken is schoon|keuken",
+    "De heuvel is hoog|heuvel",
+    "Ik draag een beugel|beugel"
+  ];
+
+  const SENT_EER = [
+    "Ik eet een peer|peer",
+    "Ik zie een beer|beer",
+    "Het weer is mooi|weer",
+    "Er is veel verkeer|verkeer",
+    "Ik smeer brood|ik smeer",
+    "Ik kom eerst|eerst",
+    "Ik wil meer|meer",
+    "Het is teer|teer",
+    "Ik parkeer de fiets|parkeer"
+  ];
+
+  const SENT_EUR = [
+    "De deur is dicht|deur",
+    "Ik ruik de geur|de geur",
+    "Niet zeur in de klas|zeur",
+    "De stof heeft een scheur|scheur",
+    "Ik wacht op de beurt|de beurt",
+    "We doen een speurtocht|speurtocht",
+    "Ik geef een spreekbeurt|spreekbeurt",
+    "Ik leer kleuren|kleuren",
+    "Niet blijven zeuren|zeuren",
+    "Dat kan gebeuren|gebeuren"
+  ];
+
+  const SENT_OOR = [
+    "Ik hoor geluid|hoor",
+    "Ik ga vooraan|voor",
+    "Mijn voorhoofd doet pijn|voorhoofd",
+    "Het oor hoort goed|het oor",
+    "De trein ontspoort|ontspoor",
+    "Het spoor is lang|het spoor",
+    "De boor ligt hier|de boor",
+    "De poort is open|de poort",
+    "Dat is een soort spel|een soort",
+    "Ik hoor muziek|ik hoor",
+    "Ik loop door|door"
+  ];
+
+
+  const SENT_ALL = [].concat(SENT_SZ_MIX, SENT_DT_MIX, SENT_DIM_MIX, SENT_COMP, SENT_SCHR, SENT_EI, SENT_IJ, SENT_NG, SENT_NK, SENT_EEUW, SENT_IEUW, SENT_UW, SENT_REGEL_D, SENT_REGEL_T, SENT_STOMME_E, SENT_EER, SENT_EUR, SENT_OOR);
 
   // =========================================================
   // State
@@ -578,6 +1022,22 @@ code{font-weight:900}
 
   let lastTarget = "";
   let mode = "word"; // word | sentence
+  let quizOn = false;
+  let quizScore = 0;
+  let quizAnswered = 0;
+  let quizStreak = 0;
+  let quizBest = 0;
+  let quizPoints = 0;
+  let quizLevel = 1;
+  let quizLives = 3;
+  let quizBadges = new Set();
+  let quizPool = [];
+  let currentCorrect = "";
+  let quizCountdown = null;
+  let quizLocked = false;
+  let onTimeUp = null;
+  const LEVEL_STEP = 5;
+  const LIVES_START = 3;
 
   // ---- AUDIO SFX ----
   const AudioCtx=window.AudioContext||window.webkitAudioContext;
@@ -597,9 +1057,11 @@ code{font-weight:900}
   const sfxNext=()=>blip(900, 90);
   const sfxTime=()=>blip(300, 140);
 
-  // ---- SPEECH ----
+  // ---- SPEECH (robust chaining) ----
   let speechOn=true;
-  function speak(t){
+  let playId = 0; // cancels async chains when skipping
+
+  function speakNow(t){
     lastTarget = t;
     if(!speechOn) return;
     if(!("speechSynthesis" in window)) return;
@@ -608,6 +1070,28 @@ code{font-weight:900}
     u.lang="nl-NL";
     u.rate=rate.value/100;
     speechSynthesis.speak(u);
+  }
+
+  function speakAsync(t, myId){
+    lastTarget = t;
+
+    if(!speechOn) return Promise.resolve();
+    if(!("speechSynthesis" in window)) return Promise.resolve();
+
+    return new Promise(resolve=>{
+      if(myId !== playId) return resolve();
+      speechSynthesis.cancel();
+
+      const u=new SpeechSynthesisUtterance(t);
+      u.lang="nl-NL";
+      u.rate=rate.value/100;
+
+      const done = () => resolve();
+      u.onend = done;
+      u.onerror = done;
+
+      speechSynthesis.speak(u);
+    });
   }
 
   // ---- UI refs ----
@@ -621,6 +1105,34 @@ code{font-weight:900}
   const elChipText = document.getElementById("chipText");
   const elModePill = document.getElementById("modePill");
 
+  const elListenCard = document.querySelector(".listenCard");
+  const elQuizOverlay = document.getElementById("quizOverlay");
+  const elQuizCard = document.getElementById("quizCard");
+  const elQuizTitle = document.getElementById("quizTitle");
+  const elQuizHint = document.getElementById("quizHint");
+  const elQuizStats = document.getElementById("quizStats");
+  const elChoiceButtons = Array.from(document.querySelectorAll(".choiceBtn"));
+  const elQuizTime = document.getElementById("quizTime");
+  const elQuizTimeBarFill = document.getElementById("quizTimeBarFill");
+  const elQuizNext = document.getElementById("quizNext");
+  const elQuizStop = document.getElementById("quizStop");
+  const elQuizPoints = document.getElementById("quizPoints");
+  const elQuizLevel = document.getElementById("quizLevel");
+  const elQuizLives = document.getElementById("quizLives");
+  const elQuizLevelFill = document.getElementById("quizLevelFill");
+  const elQuizBadgeRow = document.getElementById("quizBadgeRow");
+  const elQuizConfetti = document.getElementById("quizConfetti");
+  const elTrainerMode = document.getElementById("trainerMode");
+  const elPracticeScoreBox = document.getElementById("practiceScoreBox");
+  const elQuizScoreBox = document.getElementById("quizScoreBox");
+  const elQuizScoreGrade = document.getElementById("quizScoreGrade");
+  const elQuizScoreDetail = document.getElementById("quizScoreDetail");
+  const elQuizRewardPoints = document.getElementById("quizRewardPoints");
+  const elQuizRewardLevel = document.getElementById("quizRewardLevel");
+  const elQuizRewardBadges = document.getElementById("quizRewardBadges");
+  const elEndOverlay = document.getElementById("endOverlay");
+  const elHomeBtn = document.getElementById("homeBtn");
+
   const elWordList = document.getElementById("wordList");
 
   const elCorrectInput = document.getElementById("correctInput");
@@ -631,7 +1143,6 @@ code{font-weight:900}
   const elListSelect = document.getElementById("listSelect");
   const elModeSelect = document.getElementById("modeSelect");
 
-  // Custom list storage
   const elCustomWords = document.getElementById("customWords");
   const elCustomInfo = document.getElementById("customInfo");
 
@@ -651,12 +1162,325 @@ code{font-weight:900}
   }
 
   function setModeUI(){
-    mode = elModeSelect.value;
+    if(quizOn){
+      mode = "word";
+      elModeSelect.value = "word";
+    } else {
+      mode = elModeSelect.value;
+    }
+
     elModePill.textContent = (mode === "sentence") ? "Modus: zin + woord" : "Modus: woord";
     elHintLine.textContent = (mode === "sentence")
       ? "Je hoort een zin, daarna het doelwoord. Schrijf het doelwoord."
       : "Schrijf het woord op papier";
     if(!active) resetUI();
+  }
+
+  function setTrainerModeUI(){
+    quizOn = (elTrainerMode.value === "quiz");
+
+    if(quizOn){
+      elListenCard.classList.add("hidden");
+      elQuizCard.classList.remove("hidden");
+      elModeSelect.disabled = true;
+      elModeSelect.value = "word";
+      mode = "word";
+    } else {
+      elListenCard.classList.remove("hidden");
+      elQuizCard.classList.add("hidden");
+      elModeSelect.disabled = false;
+    }
+
+    if(!active) resetUI();
+  }
+
+  function resetQuizState(){
+    quizScore = 0;
+    quizAnswered = 0;
+    quizStreak = 0;
+    quizBest = 0;
+    quizPoints = 0;
+    quizLevel = 1;
+    quizLives = LIVES_START;
+    quizBadges = new Set();
+    quizPool = [];
+    currentCorrect = "";
+    quizLocked = false;
+    clearInterval(quizCountdown);
+    quizCountdown = null;
+    updateQuizStats();
+    updateGamifyUI();
+    setChoicesDisabled(true);
+  }
+
+  function updateQuizStats(){
+    elQuizStats.textContent = `Score: ${quizScore}/${quizAnswered} | Reeks: ${quizStreak} | Beste: ${quizBest}`;
+  }
+
+  function updateGamifyUI(){
+    elQuizPoints.textContent = String(quizPoints);
+    elQuizLevel.textContent = String(quizLevel);
+    elQuizLives.textContent = String(quizLives);
+
+    const progress = (quizScore % LEVEL_STEP) / LEVEL_STEP;
+    elQuizLevelFill.style.width = `${Math.round(progress * 100)}%`;
+    renderBadges();
+  }
+
+  function renderBadges(){
+    elQuizBadgeRow.innerHTML = "";
+    const badges = Array.from(quizBadges.values());
+    if(!badges.length) return;
+    badges.forEach(label => {
+      const b = document.createElement("span");
+      b.className = "badge";
+      b.textContent = label;
+      elQuizBadgeRow.appendChild(b);
+    });
+  }
+
+  function addBadge(label){
+    if(quizBadges.has(label)) return;
+    quizBadges.add(label);
+    renderBadges();
+  }
+
+  function awardBadges(){
+    if(quizStreak >= 3) addBadge("Reeks 3");
+    if(quizStreak >= 5) addBadge("Reeks 5");
+    if(quizStreak >= 10) addBadge("Reeks 10");
+    if(quizLevel >= 3) addBadge("Level 3");
+  }
+
+  function spawnConfetti(){
+    if(!elQuizConfetti) return;
+    for(let i=0;i<10;i++){
+      const p = document.createElement("i");
+      const left = 10 + Math.random() * 80;
+      const hue = Math.floor(Math.random() * 360);
+      p.style.left = `${left}%`;
+      p.style.top = "10px";
+      p.style.background = `hsl(${hue},80%,60%)`;
+      p.style.animationDelay = `${Math.random() * 0.1}s`;
+      elQuizConfetti.appendChild(p);
+      setTimeout(() => p.remove(), 800);
+    }
+  }
+
+  function setChoicesDisabled(disabled){
+    elChoiceButtons.forEach(btn => { btn.disabled = disabled; });
+  }
+
+  function getTargetFromLine(line){
+    const raw = String(line || "").trim();
+    if(!raw) return "";
+    if(raw.includes("|")){
+      const parts = raw.split("|");
+      return (parts[1] || "").trim();
+    }
+    return raw;
+  }
+
+  function makeChoices(correct, pool){
+    const lowerCorrect = String(correct).toLowerCase();
+    const choices = [correct];
+
+    const wrongs = makeWrongVariants(correct);
+    for(const w of wrongs){
+      if(choices.length >= 3) break;
+      if(String(w).toLowerCase() === lowerCorrect) continue;
+      if(choices.some(x => String(x).toLowerCase() === String(w).toLowerCase())) continue;
+      choices.push(w);
+    }
+
+    const candidates = pool.filter(w => String(w).toLowerCase() != lowerCorrect);
+    const shuffled = shuffle(candidates);
+
+    for(const w of shuffled){
+      if(choices.length >= 3) break;
+      choices.push(w);
+    }
+
+    while(choices.length < 3){
+      choices.push(correct);
+    }
+
+    return shuffle(choices);
+  }
+
+  function makeWrongVariants(word){
+    const raw = String(word || "").trim();
+    if(!raw) return [];
+
+    const variants = [];
+
+    const lower = raw.toLowerCase();
+    const replaceOnce = (from, to) => {
+      if(!lower.includes(from)) return;
+      const idx = lower.indexOf(from);
+      variants.push(raw.slice(0, idx) + to + raw.slice(idx + from.length));
+    };
+
+    replaceOnce("aa", "a");
+    replaceOnce("ee", "e");
+    replaceOnce("oo", "o");
+    replaceOnce("uu", "u");
+    replaceOnce("ie", "i");
+
+    replaceOnce("a", "aa");
+    replaceOnce("e", "ee");
+    replaceOnce("o", "oo");
+    replaceOnce("u", "uu");
+    replaceOnce("i", "ie");
+
+    if(raw.includes("sch")) variants.push(raw.replace("sch","s"));
+    if(raw.includes("s")) variants.push(raw.replace("s","z"));
+    if(raw.includes("z")) variants.push(raw.replace("z","s"));
+    if(raw.includes("ij")) variants.push(raw.replace("ij","ei"));
+    if(raw.includes("ei")) variants.push(raw.replace("ei","ij"));
+    if(raw.includes("ou")) variants.push(raw.replace("ou","au"));
+    if(raw.includes("au")) variants.push(raw.replace("au","ou"));
+    if(raw.includes("ui")) variants.push(raw.replace("ui","ei"));
+    if(raw.includes("ei")) variants.push(raw.replace("ei","ui"));
+    if(raw.endsWith("d")) variants.push(raw.slice(0, -1) + "t");
+    if(raw.endsWith("t")) variants.push(raw.slice(0, -1) + "d");
+    variants.push(raw.replace(/([bcdfghjklmnpqrstvwxyz])\1/i, "$1"));
+    variants.push(raw.replace(/([bcdfghjklmnpqrstvwxyz])(?!\\1)/i, "$1$1"));
+
+    const seen = new Set();
+    return variants.filter(v => {
+      const key = v.toLowerCase();
+      if(key === raw.toLowerCase()) return false;
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function renderChoices(choices){
+    elChoiceButtons.forEach((btn, i) => {
+      btn.textContent = choices[i] || "";
+      btn.dataset.word = choices[i] || "";
+    });
+    setChoicesDisabled(false);
+  }
+
+  function startQuizCountdown(){
+    let count = 3;
+    elQuizTitle.textContent = String(count);
+    elQuizHint.textContent = "Klaar?";
+
+    clearInterval(quizCountdown);
+    quizCountdown = setInterval(() => {
+      count -= 1;
+      if(count <= 0){
+        clearInterval(quizCountdown);
+        quizCountdown = null;
+        elQuizTitle.textContent = "Quiz";
+        elQuizHint.textContent = "Luister en kies het juiste woord";
+        startItem();
+        return;
+      }
+      elQuizTitle.textContent = String(count);
+    }, 700);
+  }
+
+  function startQuizItem(){
+    if(!active) return;
+
+    clearInterval(timerSec);
+    clearInterval(timerSmooth);
+
+    onTimeUp = () => handleQuizTimeout();
+
+    const item = items[index];
+    currentCorrect = String(item);
+    quizLocked = false;
+
+    elProgressText.textContent = `Opdracht ${index+1} / ${MAX}`;
+    elBarFill.style.width = `${(index / MAX) * 100}%`;
+
+    const choices = makeChoices(currentCorrect, quizPool);
+    renderChoices(choices);
+
+    elMsg.textContent = "";
+    elMsg.className = "msg";
+    updateGamifyUI();
+
+    sfxNext();
+    speakNow(currentCorrect);
+    startTimerNow();
+  }
+
+  function handleQuizChoice(choice){
+    if(!active || quizLocked) return;
+    quizLocked = true;
+
+    clearInterval(timerSec);
+    clearInterval(timerSmooth);
+
+    setChoicesDisabled(true);
+    quizAnswered += 1;
+
+    const correct = String(currentCorrect);
+    if(String(choice) === correct){
+      quizScore += 1;
+      quizStreak += 1;
+      if(quizStreak > quizBest) quizBest = quizStreak;
+      const multiplier = 1 + Math.floor(quizStreak / 3);
+      quizPoints += 10 * multiplier;
+      quizLevel = 1 + Math.floor(quizScore / LEVEL_STEP);
+      awardBadges();
+      elMsg.textContent = "Goed!";
+      elMsg.className = "msg good";
+      sfxNext();
+      spawnConfetti();
+    } else {
+      quizStreak = 0;
+      quizLives -= 1;
+      elMsg.textContent = `Fout. Goed was: ${correct}`;
+      elMsg.className = "msg bad";
+      sfxTime();
+    }
+
+    updateQuizStats();
+    updateGamifyUI();
+
+    if(quizLives <= 0){
+      elMsg.textContent = "Geen levens meer. Einde!";
+      elMsg.className = "msg bad";
+      setTimeout(() => endSession(), 700);
+      return;
+    }
+
+    setTimeout(() => nextItem(), 550);
+  }
+
+  function handleQuizTimeout(){
+    if(!active || quizLocked) return;
+    quizLocked = true;
+
+    clearInterval(timerSec);
+    clearInterval(timerSmooth);
+
+    setChoicesDisabled(true);
+    quizAnswered += 1;
+    quizStreak = 0;
+    quizLives -= 1;
+
+    elMsg.textContent = `Tijd op. Goed was: ${currentCorrect}`;
+    elMsg.className = "msg bad";
+    updateQuizStats();
+    updateGamifyUI();
+
+    if(quizLives <= 0){
+      elMsg.textContent = "Geen levens meer. Einde!";
+      elMsg.className = "msg bad";
+      setTimeout(() => endSession(), 700);
+      return;
+    }
+
+    setTimeout(() => nextItem(), 550);
   }
 
   function resetUI(){
@@ -669,6 +1493,7 @@ code{font-weight:900}
     active = false;
 
     applySettings();
+    resetQuizState();
 
     elBarFill.style.width = "0%";
     elProgressText.textContent = `Opdracht 1 / ${MAX}`;
@@ -680,6 +1505,15 @@ code{font-weight:900}
 
     end.classList.add("hidden");
     skip.disabled = true;
+
+    elQuizOverlay.classList.add("hidden");
+    elEndOverlay.classList.add("hidden");
+    end.classList.remove("endScreen");
+    elPracticeScoreBox.classList.remove("hidden");
+    elQuizScoreBox.classList.add("hidden");
+
+    playId++;
+    if("speechSynthesis" in window) speechSynthesis.cancel();
   }
 
   // --- Timer balk (smooth) ---
@@ -690,6 +1524,7 @@ code{font-weight:900}
       const remaining = Math.max(0, TIME*1000 - elapsed);
       const pct = (remaining / (TIME*1000)) * 100;
       elTimeBarFill.style.width = pct + "%";
+      if(elQuizTimeBarFill) elQuizTimeBarFill.style.width = pct + "%";
     }, 33);
   }
 
@@ -699,20 +1534,26 @@ code{font-weight:900}
 
     let t = TIME;
     elTime.textContent = String(t);
+    if(elQuizTime) elQuizTime.textContent = String(t);
     elTimeBarFill.style.width = "100%";
+    if(elQuizTimeBarFill) elQuizTimeBarFill.style.width = "100%";
 
     const startMs = Date.now();
     startTimeBar(startMs);
 
     timerSec = setInterval(()=>{
-      t -= 1;
+      t = Math.max(0, t - 1);
       elTime.textContent = String(t);
+      if(elQuizTime) elQuizTime.textContent = String(t);
+
       if(t <= 0){
         clearInterval(timerSec);
         clearInterval(timerSmooth);
         elTimeBarFill.style.width = "0%";
+        if(elQuizTimeBarFill) elQuizTimeBarFill.style.width = "0%";
         sfxTime();
-        nextItem();
+        if(onTimeUp) onTimeUp();
+        else nextItem();
       }
     }, 1000);
   }
@@ -746,6 +1587,20 @@ code{font-weight:900}
       case "only_je": return DIM_JE.slice();
       case "only_tje": return DIM_TJE.slice();
       case "comp": return COMPOUNDS.slice();
+      case "schr": return WORDS_SCHR.slice();
+      case "ei_words": return WORDS_EI.slice();
+      case "ij_words": return WORDS_IJ.slice();
+      case "ng_words": return WORDS_NG.slice();
+      case "nk_words": return WORDS_NK.slice();
+      case "eeuw_words": return WORDS_EEUW.slice();
+      case "ieuw_words": return WORDS_IEUW.slice();
+      case "uw_words": return WORDS_UW.slice();
+      case "regel_d": return WORDS_REGEL_D.slice();
+      case "regel_t": return WORDS_REGEL_T.slice();
+      case "stomme_e": return WORDS_STOMME_E.slice();
+      case "eer_words": return WORDS_EER.slice();
+      case "eur_words": return WORDS_EUR.slice();
+      case "oor_words": return WORDS_OOR.slice();
       case "mix_all": return MIX_ALL.slice();
       default: return MIX_SZ.slice();
     }
@@ -763,6 +1618,20 @@ code{font-weight:900}
       case "only_je": return SENT_JE_ONLY.slice();
       case "only_tje": return SENT_TJE_ONLY.slice();
       case "comp": return SENT_COMP.slice();
+      case "schr": return SENT_SCHR.slice();
+      case "ei_words": return SENT_EI.slice();
+      case "ij_words": return SENT_IJ.slice();
+      case "ng_words": return SENT_NG.slice();
+      case "nk_words": return SENT_NK.slice();
+      case "eeuw_words": return SENT_EEUW.slice();
+      case "ieuw_words": return SENT_IEUW.slice();
+      case "uw_words": return SENT_UW.slice();
+      case "regel_d": return SENT_REGEL_D.slice();
+      case "regel_t": return SENT_REGEL_T.slice();
+      case "stomme_e": return SENT_STOMME_E.slice();
+      case "eer_words": return SENT_EER.slice();
+      case "eur_words": return SENT_EUR.slice();
+      case "oor_words": return SENT_OOR.slice();
       case "mix_all": return SENT_ALL.slice();
       default: return SENT_ALL.slice();
     }
@@ -778,6 +1647,12 @@ code{font-weight:900}
       pool = (mode === "sentence") ? getSentencePool(elListSelect.value) : getWordPool(elListSelect.value);
     }
 
+    if(quizOn){
+      const cleaned = pool.map(getTargetFromLine).filter(Boolean);
+      quizPool = [...new Set(cleaned)];
+      pool = quizPool;
+    }
+
     pool = shuffle(pool);
 
     const out = [];
@@ -786,28 +1661,29 @@ code{font-weight:900}
   }
 
   // ---- Flow ----
-  function speakSentenceThenTarget(sentence, target){
-    const base = 700;
-    const extra = Math.min(1600, Math.max(0, sentence.length * 20));
-    const delay = base + extra;
+  async function speakSentenceThenTarget(sentence, target, myId){
+    await speakAsync(sentence, myId);
+    if(myId !== playId || !active) return;
 
-    // 1) zin
-    speak(sentence);
-
-    // 2) doelwoord + timer start
-    setTimeout(() => {
-      sfxNext();
-      speak(target);
-      startTimerNow();
-    }, delay);
+    sfxNext();
+    startTimerNow();
+    await speakAsync(target, myId);
   }
 
   function startItem(){
     if(!active) return;
 
+    if(quizOn){
+      startQuizItem();
+      return;
+    }
+
     clearInterval(timerSec);
     clearInterval(timerSmooth);
 
+    onTimeUp = null;
+
+    const myId = ++playId;
     const item = items[index];
 
     elProgressText.textContent = `Opdracht ${index+1} / ${MAX}`;
@@ -820,20 +1696,18 @@ code{font-weight:900}
       const target   = (parts[1] || "").trim();
 
       if(sentence && target){
-        speakSentenceThenTarget(sentence, target);
+        speakSentenceThenTarget(sentence, target, myId);
         return;
       }
 
-      // fallback: geen "|"
       sfxNext();
-      speak(String(item));
+      speakNow(String(item));
       startTimerNow();
       return;
     }
 
-    // woord-modus
     sfxNext();
-    speak(String(item));
+    speakNow(String(item));
     startTimerNow();
   }
 
@@ -856,6 +1730,28 @@ code{font-weight:900}
 
     end.classList.remove("hidden");
     elWordList.innerHTML = "";
+    elQuizOverlay.classList.add("hidden");
+    if(quizOn){
+      elEndOverlay.classList.remove("hidden");
+      end.classList.add("endScreen");
+    } else {
+      elEndOverlay.classList.add("hidden");
+      end.classList.remove("endScreen");
+    }
+
+    if(quizOn){
+      elPracticeScoreBox.classList.add("hidden");
+      elQuizScoreBox.classList.remove("hidden");
+      if(quizScore === MAX) addBadge("Perfect");
+      elQuizScoreGrade.textContent = `${quizScore} / ${MAX}`;
+      elQuizScoreDetail.textContent = `Goed: ${quizScore} van ${MAX}. Beste reeks: ${quizBest}.`;
+      elQuizRewardPoints.textContent = `Punten: ${quizPoints}`;
+      elQuizRewardLevel.textContent = `Level: ${quizLevel}`;
+      elQuizRewardBadges.textContent = `Badges: ${Array.from(quizBadges).join(", ") || "geen"}`;
+    } else {
+      elPracticeScoreBox.classList.remove("hidden");
+      elQuizScoreBox.classList.add("hidden");
+    }
 
     items.forEach((it,i)=>{
       let show = String(it);
@@ -876,9 +1772,10 @@ code{font-weight:900}
       btn.addEventListener("click", () => {
         if(mode === "sentence" && String(it).includes("|")){
           const [s,w] = String(it).split("|").map(x=>x.trim());
-          speakSentenceThenTarget(s, w);
+          const myId = ++playId;
+          speakSentenceThenTarget(s, w, myId);
         } else {
-          speak(show);
+          speakNow(show);
         }
       });
 
@@ -888,7 +1785,7 @@ code{font-weight:900}
     });
 
     applySettings();
-    elCorrectInput.focus();
+    if(!quizOn) elCorrectInput.focus();
   }
 
   // ---- Score ----
@@ -959,19 +1856,31 @@ code{font-weight:900}
     items = pickItems();
     active = true;
     skip.disabled = false;
-    startItem();
+
+    if(quizOn){
+      elQuizOverlay.classList.remove("hidden");
+      startQuizCountdown();
+    } else {
+      startItem();
+    }
   });
 
-  skip.addEventListener("click", ()=> active && nextItem());
+  skip.addEventListener("click", ()=>{
+    if(!active) return;
+    if("speechSynthesis" in window) speechSynthesis.cancel();
+    nextItem();
+  });
+
   restart.addEventListener("click", ()=> resetUI());
 
   speechToggle.addEventListener("click", ()=>{
     speechOn = !speechOn;
     speechToggle.textContent = speechOn ? "🔊 Spraak: aan" : "🔇 Spraak: uit";
+    if(!speechOn && "speechSynthesis" in window) speechSynthesis.cancel();
   });
 
   repeat.addEventListener("click", ()=>{
-    if(lastTarget) speak(lastTarget);
+    if(lastTarget) speakNow(lastTarget);
   });
 
   timeSetting.addEventListener("change", ()=> { if(!active) resetUI(); });
@@ -982,8 +1891,17 @@ code{font-weight:900}
   elCorrectInput.addEventListener("blur", computeGrade);
 
   modeSelect.addEventListener("change", setModeUI);
+  trainerMode.addEventListener("change", setTrainerModeUI);
+
+  elChoiceButtons.forEach(btn => {
+    btn.addEventListener("click", () => handleQuizChoice(btn.dataset.word));
+  });
+  elQuizNext.addEventListener("click", () => handleQuizTimeout());
+  elQuizStop.addEventListener("click", () => endSession());
+  elHomeBtn.addEventListener("click", () => { window.location.href = "index.html"; });
 
   // init
+  setTrainerModeUI();
   setModeUI();
   resetUI();
 })();
