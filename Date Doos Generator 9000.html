@@ -6,7 +6,6 @@
 <title>Date Doos Generator 9000</title>
 
 <style>
-/* ===== Viewport / background fix (removes the “end line”) ===== */
 html, body{
   margin:0;
   padding:0;
@@ -15,22 +14,17 @@ html, body{
   overflow-x:hidden;
   background:linear-gradient(135deg,#2b0a3d,#5b0f1a,#0f3d2e);
 }
-
-/* Canvassen vullen altijd de echte zichtbare hoogte */
-#bgAnim,
-#confetti{
+#bgAnim,#confetti{
   position:fixed;
   top:0;
   left:0;
   width:100vw;
-  height:100dvh;        /* ✅ dynamic viewport height (mobile bars safe) */
+  height:100dvh;
   pointer-events:none;
 }
-
 #bgAnim{ z-index:0; }
 #confetti{ z-index:9999; }
 
-/* ===== UI ===== */
 .wrap{
   max-width:480px;
   margin:80px auto;
@@ -43,7 +37,6 @@ html, body{
   align-items:flex-start;
   box-sizing:border-box;
 }
-
 .card{
   width:100%;
   background:rgba(255,255,255,0.96);
@@ -54,7 +47,6 @@ html, body{
     0 0 0 1px rgba(255,255,255,.4),
     0 20px 60px rgba(0,0,0,.35);
 }
-
 h1,h2{ margin-top:0; }
 p{ font-weight:700; color:#555; line-height:1.5; }
 label{ display:block; margin-top:18px; font-weight:900; }
@@ -62,13 +54,12 @@ label{ display:block; margin-top:18px; font-weight:900; }
 input{
   width:100%;
   padding:14px;
-  font-size:16px; /* voorkomt iOS zoom */
+  font-size:16px;
   border-radius:14px;
   border:2px solid #e5e7f2;
   margin-top:8px;
   box-sizing:border-box;
 }
-
 button{
   width:100%;
   margin-top:16px;
@@ -82,7 +73,6 @@ button{
   cursor:pointer;
   -webkit-tap-highlight-color: transparent;
 }
-
 button.secondary{ background:#111827; }
 
 .msg{ margin-top:10px; font-weight:900; }
@@ -100,7 +90,6 @@ button.secondary{ background:#111827; }
   color:#9f1239;
   margin-bottom:10px;
 }
-
 .rewardBox{
   background:#f8fafc;
   border:2px dashed #e5e7f2;
@@ -108,7 +97,6 @@ button.secondary{ background:#111827; }
   padding:14px;
   margin-top:12px;
 }
-
 .video{
   position:relative;
   padding-top:56.25%;
@@ -124,7 +112,6 @@ button.secondary{ background:#111827; }
   border:0;
 }
 
-/* ===== Mobile tweaks ===== */
 @media (max-width:520px){
   .wrap{
     margin:18px auto;
@@ -143,7 +130,6 @@ button.secondary{ background:#111827; }
 <canvas id="bgAnim"></canvas>
 <canvas id="confetti"></canvas>
 
-<!-- 🎵 Muziek: zet christmas.mp3 in dezelfde map als dit HTML bestand -->
 <audio id="bgMusic" preload="auto" loop>
   <source src="christmas.mp3" type="audio/mpeg">
 </audio>
@@ -151,7 +137,6 @@ button.secondary{ background:#111827; }
 <div class="wrap">
   <div class="card">
 
-    <!-- START -->
     <div id="start">
       <h1>🎁 Date Doos Generator 9000</h1>
 
@@ -175,7 +160,6 @@ button.secondary{ background:#111827; }
       </p>
     </div>
 
-    <!-- QUIZ -->
     <div id="quiz" class="hide">
       <div class="pill">🎄💛 Kerstquiz</div>
       <h2>Beantwoord de vragen</h2>
@@ -191,13 +175,12 @@ button.secondary{ background:#111827; }
       <button class="secondary" onclick="resetAll()">Andere code invoeren</button>
     </div>
 
-    <!-- REWARD -->
     <div id="reward" class="hide">
       <div class="pill">🎉 Ontgrendeld</div>
       <h2>Yes! 🎉</h2>
 
       <div class="rewardBox">
-        <div id="rewardGolf">
+        <div id="rewardGolf" class="hide">
           <p style="font-weight:900;">
             🎉 <strong>Gefeliciteerd!</strong><br>
             Het is gelukt 🎉<br>
@@ -205,6 +188,7 @@ button.secondary{ background:#111827; }
             Tijd om samen het gras op te gaan, te lachen en plezier te maken ⛳💛
           </p>
         </div>
+
         <div id="rewardZombie" class="hide">
           <p style="font-weight:900;">
             🎉 <strong>Gefeliciteerd!</strong><br>
@@ -221,6 +205,13 @@ button.secondary{ background:#111827; }
             ></iframe>
           </div>
         </div>
+
+        <div id="rewardDinner" class="hide">
+          <p style="font-weight:900;">
+            🎉 <strong>Gefeliciteerd!</strong><br>
+            Je gaat <strong>sushi eten in de Rheinturm</strong> 🍣🗼💛
+          </p>
+        </div>
       </div>
 
       <button onclick="resetAll()">Terug naar start</button>
@@ -232,49 +223,63 @@ button.secondary{ background:#111827; }
 <script>
 /* 🔐 Geldige codes */
 const VALID_CODES = [
+  "1234",
   "25021990","31032018","25061991","19102022","02052020",
   "240012","240025","240031","240019","20182024",
   "19902024","20202412"
 ];
 
-/* ❓ Vragen (strikte structuur)
-   1) 2 open
-   2) 3 raadsels (1x typen -> automatisch antwoord)
-   3) 3 check (moet kloppen)
-*/
+/* ❓ Vragen per code */
 const QUESTIONS_BY_CODE = {
+  "1234": [
+    {
+      type: "riddle",
+      q: "Ik ben dood, maar ik loop. Ik heb geen hartslag, maar wel honger. Wat ben ik?",
+      answerText: "Een zombie 🧟‍♂️"
+    },
+    {
+      type: "check",
+      q: "Hoe heet jouw favoriete zombiefilm?",
+      answers: ["resident evil","residentevil"]
+    },
+    {
+      type: "check",
+      q: "Wat eten zombies het liefst?",
+      answers: ["hersenen","brein","brains"]
+    },
+    {
+      type: "open",
+      q: "Wat gaan wij samen doen om de zombies te verslaan?",
+      positive: "Klinkt als een topplan 😈🧟‍♂️🔥"
+    }
+  ],
+
   "20182024": [
-    // OPEN VRAGEN
     {
       type: "open",
       q: "Wat maakt jou blij?",
-      positive: "Wat lief ??."
+      positive: "Wat lief 💛."
     },
     {
       type: "open",
       q: "Wat vind je zo leuk aan kerst?",
-      positive: "Correct ???"
+      positive: "Correct 🎄✨"
     },
-
-    // RAADSELS
-
     {
       type: "riddle",
       q: "Waarom zijn vissen zo slim?",
-      answerText: "Omdat ze in een school zwemmen ??"
+      answerText: "Omdat ze in een school zwemmen 😄"
     },
     {
       type: "riddle",
       q: "Een moeder heeft 6 appels en 5 kinderen. Hoe kan ze eerlijk alle appels verdelen?",
-      answerText: "Appelmoes maken! ????"
+      answerText: "Appelmoes maken! 🍎"
     },
     {
       type: "riddle",
       q: "Wat is wit, koud en komt vaak uit de lucht met kerst?",
-      answerText: "?? Sneeuw!"
+      answerText: "Sneeuw ❄️"
     },
-
-    // CHECKVRAGEN
     {
       type: "check",
       q: "Welke sportschool was de eerste waar we samen heen gingen om te sporten?",
@@ -293,42 +298,47 @@ const QUESTIONS_BY_CODE = {
   ]
 };
 
+/* 🍽️ Dinner Date Quiz als default */
 const DEFAULT_QUESTIONS = [
-  {
-    type: "riddle",
-    q: "Ik ben dood, maar ik loop. Ik heb geen hartslag, maar wel honger. Wat ben ik?",
-    answerText: "Een zombie ?????"
+{
+    type: "check",
+    q: "Wat is de grootste economie in Europa?",
+    answers: ["Duitsland","duitsland"]
   },
   {
     type: "check",
-    q: "Hoe heet jouw favoriete zombiefilm?",
-    answers: ["resident evil","residentevil"]
+    q: "Welke Duitse stad staat bekend om de Königsallee en ligt aan de Rijn?",
+    answers: ["düsseldorf","dusseldorf","duesseldorf"]
   },
   {
     type: "check",
-    q: "Wat eten zombies het liefst?",
-    answers: ["hersenen","brein","brains"]
+    q: "Hoe heet de iconische toren in Düsseldorf waar je hoog boven de stad kunt dineren?",
+    answers: ["rheinturm","de rheinturm"]
   },
   {
     type: "open",
-    q: "Wat gaan wij samen doen om de zombies te verslaan?",
-    positive: "Klinkt als een topplan ?????????"
+    q: "Wat eet je het liefst hier in Düsseldorf?",
+    positive: "Gefeliciteerd! Je gaat sushi eten in de Rheinturm! 🍣🗼💛"
   }
 ];
 
 let activeQuestions = DEFAULT_QUESTIONS;
+
 const REWARD_BY_CODE = {
+  "1234": "zombie",
   "20182024": "golf"
 };
-const DEFAULT_REWARD = "zombie";
+const DEFAULT_REWARD = "dinner";
 
 let qIndex = 0;
 
 /* 🎵 Music */
 const music = document.getElementById("bgMusic");
-music.volume = 0.35; // zacht
+music.volume = 0.35;
+
 const rewardGolf = document.getElementById("rewardGolf");
 const rewardZombie = document.getElementById("rewardZombie");
+const rewardDinner = document.getElementById("rewardDinner");
 
 function norm(s){
   return String(s||"").trim().toLowerCase().replace(/\s+/g," ");
@@ -345,10 +355,10 @@ function setRewardForCode(code){
   const reward = REWARD_BY_CODE[code] || DEFAULT_REWARD;
   rewardGolf.classList.toggle("hide", reward !== "golf");
   rewardZombie.classList.toggle("hide", reward !== "zombie");
+  rewardDinner.classList.toggle("hide", reward !== "dinner");
 }
 
 function startGame(){
-  // ✅ Start muziek na user click (browser policy-proof)
   if (music && music.paused){
     music.play().catch(()=>{});
   }
@@ -357,8 +367,10 @@ function startGame(){
   if (!VALID_CODES.includes(v)){
     return setMsg(startMsg,"❌ Dit nummer hoort niet bij de doos.",false);
   }
+
   activeQuestions = QUESTIONS_BY_CODE[v] || DEFAULT_QUESTIONS;
   setRewardForCode(v);
+
   qIndex = 0;
   start.classList.add("hide");
   quiz.classList.remove("hide");
@@ -384,19 +396,16 @@ function checkAnswer(){
     return setMsg(msg,"Typ gerust iets in 🙂",false);
   }
 
-  // ❤️ OPEN: elk antwoord is goed
   if (cur.type === "open"){
     setMsg(msg, cur.positive, true);
     return nextStep();
   }
 
-  // 😂 RAADSEL: 1x typen, daarna antwoord tonen
   if (cur.type === "riddle"){
     setMsg(msg, cur.answerText + " 😊", true);
     return nextStep();
   }
 
-  // ✅ CHECK: moet kloppen, anders opnieuw proberen
   if (cur.type === "check"){
     if (!ok(value, cur.answers)){
       return setMsg(msg,"Bijna! Probeer het nog eens 💛",false);
@@ -406,10 +415,9 @@ function checkAnswer(){
   }
 }
 
-/* ✅ Pauze: langer bij raadsels */
 function nextStep(){
   const cur = activeQuestions[qIndex];
-  const delay = (cur.type === "riddle") ? 4500 : 700; // ⏸️ 2s voor raadsels, 0.7s voor de rest
+  const delay = (cur.type === "riddle") ? 4500 : 700;
 
   setTimeout(()=>{
     qIndex++;
@@ -437,9 +445,6 @@ function resetAll(){
   ans.value="";
   startMsg.textContent="";
   msg.textContent="";
-
-  // Optioneel: stop muziek als je teruggaat naar start
-  // music.pause(); music.currentTime = 0;
 }
 
 document.addEventListener("keydown",e=>{
@@ -448,7 +453,7 @@ document.addEventListener("keydown",e=>{
   else if(!quiz.classList.contains("hide")) checkAnswer();
 });
 
-/* ===== Canvas sizing (fixes the bottom “edge/line”) ===== */
+/* ===== Canvas sizing ===== */
 const bg = document.getElementById("bgAnim");
 const conf = document.getElementById("confetti");
 const bctx = bg.getContext("2d");
@@ -460,7 +465,7 @@ function setCanvasSize(c){
   c.width  = Math.max(1, Math.floor(rect.width  * dpr));
   c.height = Math.max(1, Math.floor(rect.height * dpr));
   const ctx = c.getContext("2d");
-  ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
+  ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 
 function resizeAll(){
@@ -477,7 +482,7 @@ const icons = ["❄️","💖","✨","🎄"];
 
 function initBg(){
   flakes.length = 0;
-  const count = (innerWidth <= 520) ? 42 : 60; // iets lichter op mobiel
+  const count = (innerWidth <= 520) ? 42 : 60;
   for(let i=0;i<count;i++){
     flakes.push({
       x: Math.random()*innerWidth,
@@ -508,7 +513,7 @@ function drawBg(){
 }
 drawBg();
 
-/* 🎊 Confetti (on unlock) */
+/* 🎊 Confetti */
 let pieces = [];
 function rand(min,max){ return Math.random()*(max-min)+min; }
 
