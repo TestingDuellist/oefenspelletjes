@@ -235,7 +235,7 @@ code{font-weight:900}
           <option value="mix_sz" selected>Mix s/z</option>
           <option value="only_s">Alleen s</option>
           <option value="only_z">Alleen z</option>
-
+	
           <option value="mix_dt">Mix d/t</option>
           <option value="only_d">Alleen d</option>
           <option value="only_t">Alleen t</option>
@@ -260,6 +260,7 @@ code{font-weight:900}
           <option value="eur_words">Klankwoorden eur</option>
           <option value="oor_words">Klankwoorden oor</option>
           <option value="mix_all">Mix alles</option>
+		  <option value="controle_dictee_8">Controle dictee 8</option>
         </select>
       </div>
 
@@ -392,7 +393,22 @@ code{font-weight:900}
   // =========================================================
   // GROEP 4 WOORDENLIJSTEN (gecontroleerd, geen dubbels, simpel)
   // =========================================================
+	const CONTROLE_DICTEE_8 = [
+	  "Het water","De ramen","De hamer","De haren","Dragen","Later","Sparen","De stenen","De regen","De lepel",
+	  "Spelen","Het metaal","Wij eten","Geven","De molen","De bomen","De vogel","De broden","Lopen","Dromen",
+	  "De rode verf","De muren","De buren","De uren","Lang duren","Een dure jas","De muziek","De bakker","De kapper",
+	  "De jassen","De ballen","Wakker","De appel","Bellen","De lessen","De stemmen","Zwemmen","Leggen","De emmer",
+	  "De vissen","De pitten","De kippen","Het midden","Trillen","Winnen","De mollen","De trommel","De koffer",
+	  "Boffen","De blokken","De sommen","Het nummer","De spullen","De muggen","De bussen","Kunnen","De krullen",
 
+	  "De fiets","Het feest","De fluit","Het fruit","De fles","Fris","De film","De fee","De foto","Fijn",
+	  "Fel licht","Flink","Friet","De folder","De fabriek","Vier","De vork","De vlag","Vlot","De vaas",
+	  "Vaak","Veel","Voor","De verf","De voet","De vlieg","De vlam","Vuil","Ver","Vol","Vast",
+	  "De sok","De som","De soep","De sik","Een soort","Een sap","Soms","Saai","De salto","De sandaal",
+	  "De suiker","De sjaal","Samen","Sjouwen","Surfen","Sip",
+	  "De zon","De zee","De zak","De zeep","De zus","De zalm","De zoen","Ziek","De zolder","Het zuiden",
+	  "Zelf","Zoeken","Zes","Zo","Zuur","Zoet"
+	];
   const WORDS_S = [
     "soep","sok","stoel","slang","schaap","sneeuw","snoep","school","straat","spelen",
     "snel","stil","slaap","slim","stap","stop","stem","stok","sport","spin",
@@ -1577,6 +1593,7 @@ code{font-weight:900}
   // ---- Pools ----
   function getWordPool(sel){
     switch(sel){
+	  case "controle_dictee_8": return CONTROLE_DICTEE_8.slice();
       case "mix_sz": return MIX_SZ.slice();
       case "only_s": return WORDS_S.slice();
       case "only_z": return WORDS_Z.slice();
