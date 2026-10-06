@@ -81,6 +81,7 @@
     <h1>🎮 Kies je spel</h1>
     <p>Wat wil je vandaag oefenen?</p>
 
+    <button onclick="openGame('wijk')">🏘️ Mijn straat en wijk</button>
     <button onclick="openGame('tafel')">🧮 Tafels</button>
     <button class="secondary" onclick="openGame('cito')">📘 Cito groep 4M</button>
     <button class="secondary" onclick="openGame('spelling')">✏️ Spelling</button>
@@ -89,6 +90,12 @@
   </div>
 </div>
 
+
+<!-- MIJN STRAAT EN WIJK -->
+<div id="screenWijk" class="screen">
+  <div class="topbar"><button onclick="backToMenu()">⬅ Menu</button><strong>🏘️ Mijn straat en wijk</strong></div>
+  <div class="frameWrap"><iframe id="frameWijk" title="Mijn straat en wijk" src="wijktrainer.html"></iframe></div>
+</div>
 
 <!-- TAFELS -->
 <div id="screenTafel" class="screen">
@@ -153,8 +160,8 @@
 </div>
 
 <script>
-  const SCREENS = ["screenMenu","screenTafel","screenCito","screenSpelling","screenDate","screenBke"];
-  const FRAMES  = ["frameTafel","frameCito","frameSpelling","frameDate","frameBke"];
+  const SCREENS = ["screenWijk","screenMenu","screenTafel","screenCito","screenSpelling","screenDate","screenBke"];
+  const FRAMES  = ["frameWijk","frameTafel","frameCito","frameSpelling","frameDate","frameBke"];
 
   function resetFrames(){
     for (const id of FRAMES){
@@ -174,6 +181,7 @@
   function openGame(which){
     resetFrames();
 
+    if (which === "wijk") return showOnly("screenWijk");
     if (which === "tafel")   return showOnly("screenTafel");
     if (which === "cito")    return showOnly("screenCito");
     if (which === "spelling")return showOnly("screenSpelling");
